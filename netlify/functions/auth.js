@@ -1,24 +1,95 @@
 // Netlify Function - Authentification
-const express = require('express');
-const serverless = require('serverless-http');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
-const app = express();
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key_ecom_2024';
 
-// Middleware
-app.use(express.json());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+// Handler principal
+exports.handler = async (event, context) => {
+  // CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle OPTIONS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
   }
-  next();
-});
+
+  // Only POST allowed
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  try {
+    const { phone, password } = JSON.parse(event.body || '{}');
+
+    if (!phone) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Numéro de téléphone requis' })
+      };
+    }
+
+    // Normaliser le numéro (ajouter +228 si absent)
+    let normalizedPhone = phone.trim();
+    if (!normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+228' + normalizedPhone;
+    }
+
+    // En mode démo, créer un user fictif
+    const user = {
+      id: `user_${normalizedPhone.replace(/\D/g, '')}`,
+      phoneNumber: normalizedPhone,
+      name: 'Utilisateur',
+      email: `${normalizedPhone.replace(/\D/g, '')}@ecom.tg`,
+      wallet: {
+        balance: 2500
+      }
+    };
+
+    // Générer token JWT
+    const token = jwt.sign(
+      { 
+        userId: user.id,
+        phoneNumber: user.phoneNumber 
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        token,
+        user
+      })
+    };
+  } catch (error) {
+    console.error('Auth error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Erreur serveur',
+        message: error.message 
+      })
+    };
+  }
+};
 
 // Fonction utilitaire pour valider le numéro de téléphone Togo
 function validateTogoPhone(phone) {

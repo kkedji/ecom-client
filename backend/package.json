@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "build": "babel src -d dist",
+    "build": "prisma generate && prisma db push --accept-data-loss",
+    "postinstall": "prisma generate",
     "test": "jest",
     "test:watch": "jest --watch",
     "migrate": "npx prisma migrate dev",

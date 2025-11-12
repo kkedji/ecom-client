@@ -54,6 +54,8 @@ class ApiService {
         errorMessage = 'Impossible de contacter le serveur. Vérifiez votre connexion internet.'
       } else if (error.message.includes('NetworkError')) {
         errorMessage = 'Erreur réseau. Veuillez réessayer.'
+      } else if (error.message.includes('502') || response?.status === 502) {
+        errorMessage = 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.'
       } else if (error.message) {
         errorMessage = error.message
       }

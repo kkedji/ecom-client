@@ -64,22 +64,27 @@ const Login = () => {
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: '100px',
+            height: '100px',
             margin: '0 auto 16px',
-            backgroundColor: '#4CAF50',
-            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)'
+            justifyContent: 'center'
           }}>
-            <h1 style={{
-              color: 'white',
-              fontSize: '42px',
-              fontWeight: 'bold',
-              margin: 0
-            }}>E</h1>
+            <img 
+              src="/src/assets/images/ecom-logo.png" 
+              alt="ECOM Logo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
+              }}
+              onError={(e) => {
+                // Fallback au cercle vert si image non trouvée
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = '<div style="width: 80px; height: 80px; background: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);"><h1 style="color: white; font-size: 42px; font-weight: bold; margin: 0;">E</h1></div>';
+              }}
+            />
           </div>
           <h2 style={{
             margin: '0 0 8px 0',
