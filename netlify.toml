@@ -19,9 +19,6 @@
 # Configuration des fonctions
 [functions]
   node_bundler = "esbuild"
-
-[[functions]]
-  path = "/.netlify/functions/*"
   included_files = ["prisma/**/*", "backend/src/**/*"]
 
 # API Routes - Backend
