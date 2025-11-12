@@ -16,6 +16,7 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--production=false"
+  VITE_API_URL = "https://ecom-backend-kmz0.onrender.com"
 
 # Configuration des fonctions
 [functions]
