@@ -1,0 +1,112 @@
+# Configuration Netlify pour Ecom PWA + Backend
+
+[build]
+  # Répertoire contenant le code source
+  base = "."
+  
+  # Commande de build
+  command = "npm run build"
+  
+  # Répertoire de sortie à déployer
+  publish = "dist"
+  
+  # Répertoire des fonctions serverless
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Configuration des fonctions
+[functions]
+  node_bundler = "esbuild"
+
+[[functions]]
+  path = "/.netlify/functions/*"
+  included_files = ["prisma/**/*", "backend/src/**/*"]
+
+# API Routes - Backend
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/auth/*"
+  to = "/.netlify/functions/auth/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/wallet/*"
+  to = "/.netlify/functions/wallet/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/transport/*"
+  to = "/.netlify/functions/transport/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/marketplace/*"
+  to = "/.netlify/functions/marketplace/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/webhooks/*"
+  to = "/.netlify/functions/webhooks/:splat"
+  status = 200
+
+# SPA Fallback (must be last)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de sécurité et performance pour PWA + API
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Sécurité
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # PWA et Cache
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Headers CORS pour les fonctions API
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+
+# Cache pour les assets statiques
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers spéciaux pour le service worker
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+# Headers pour le manifest PWA
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Configuration des variables d'environnement de build
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--production=false"
+
+# Prévention des builds lors de changements de fichiers non pertinents
+[build.ignore]
+  command = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)README.md' ':(exclude)docs/'"

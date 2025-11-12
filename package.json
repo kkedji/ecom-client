@@ -1,0 +1,35 @@
+{
+  "name": "ecom-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ecom - PWA pour mobilité durable, marketplace énergies renouvelables et gestion empreinte carbone",
+  "keywords": ["PWA", "écologie", "transport", "crédits carbone", "énergies renouvelables"],
+  "author": "SKK Analytics",
+  "license": "MIT",
+  "homepage": "https://ecom-pwa.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/votre-username/ecom-pwa.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "echo 'Linting skipped for now'",
+    "test": "echo 'Tests not implemented yet'",
+    "build:netlify": "npm ci && npm run build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.17.0"
+  },
+  "devDependencies": {
+    "vite": "^5.1.0",
+    "@vitejs/plugin-react": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

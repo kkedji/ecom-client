@@ -1,0 +1,107 @@
+<svg width="375" height="812" viewBox="0 0 375 812" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Status bar -->
+  <rect width="375" height="44" fill="#000"/>
+  <text x="20" y="30" fill="white" font-family="system-ui" font-size="16" font-weight="600">9:41</text>
+  <text x="330" y="30" fill="white" font-family="system-ui" font-size="16">100%</text>
+  
+  <!-- Header avec bouton langue -->
+  <rect y="44" width="375" height="60" fill="#004D40"/>
+  <text x="20" y="82" fill="white" font-family="system-ui" font-size="24" font-weight="700">Ecom</text>
+  <rect x="290" y="56" width="70" height="32" rx="16" fill="rgba(255,255,255,0.2)"/>
+  <text x="305" y="76" fill="white" font-family="system-ui" font-size="14">🇫🇷 FR</text>
+  
+  <!-- Contenu principal -->
+  <rect y="104" width="375" height="708" fill="#F6F6F6"/>
+  
+  <!-- Page header -->
+  <defs>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#004D40"/>
+      <stop offset="100%" style="stop-color:#00695C"/>
+    </linearGradient>
+  </defs>
+  
+  <rect x="16" y="120" width="343" height="80" rx="12" fill="url(#headerGrad)"/>
+  <text x="32" y="155" fill="white" font-family="system-ui" font-size="24" font-weight="700">Livraisons éco-responsables</text>
+  <text x="32" y="180" fill="white" font-family="system-ui" font-size="14" opacity="0.9">🚲 Flotte verte • Suivi temps réel</text>
+  
+  <!-- Action rapide -->
+  <rect x="16" y="216" width="343" height="100" rx="10" fill="white"/>
+  <text x="32" y="246" fill="#111" font-family="system-ui" font-size="18" font-weight="600">📦 Commander une livraison</text>
+  
+  <rect x="32" y="260" width="150" height="40" rx="20" fill="#004D40"/>
+  <text x="107" y="284" fill="white" font-family="system-ui" font-size="14" font-weight="600" text-anchor="middle">Nouvelle livraison</text>
+  
+  <rect x="193" y="260" width="150" height="40" rx="20" fill="#E0E7FF"/>
+  <text x="268" y="284" fill="#004D40" font-family="system-ui" font-size="14" font-weight="600" text-anchor="middle">Livraison express</text>
+  
+  <!-- Types de véhicules -->
+  <rect x="16" y="332" width="343" height="200" rx="10" fill="white"/>
+  <text x="32" y="362" fill="#111" font-family="system-ui" font-size="18" font-weight="600">🚐 Choisir votre véhicule</text>
+  
+  <!-- Vélo cargo -->
+  <rect x="32" y="376" width="311" height="60" rx="8" fill="#F0F9FF" stroke="#004D40" stroke-width="1"/>
+  <circle cx="52" cy="396" r="12" fill="#004D40"/>
+  <text x="48" y="401" fill="white" font-family="system-ui" font-size="12">🚲</text>
+  <text x="76" y="392" fill="#111" font-family="system-ui" font-size="14" font-weight="600">Vélo-cargo</text>
+  <text x="76" y="408" fill="#666" font-family="system-ui" font-size="12">0€ CO₂ • Jusqu'à 50kg • Ville</text>
+  <text x="76" y="424" fill="#004D40" font-family="system-ui" font-size="12" font-weight="600">Disponible dans 15min</text>
+  <text x="300" y="401" fill="#004D40" font-family="system-ui" font-size="14" font-weight="600">Gratuit</text>
+  
+  <!-- Véhicule électrique -->
+  <rect x="32" y="446" width="311" height="60" rx="8" fill="#FFF7ED"/>
+  <circle cx="52" cy="466" r="12" fill="#FF6B35"/>
+  <text x="48" y="471" fill="white" font-family="system-ui" font-size="12">⚡</text>
+  <text x="76" y="462" fill="#111" font-family="system-ui" font-size="14" font-weight="600">Véhicule électrique</text>
+  <text x="76" y="478" fill="#666" font-family="system-ui" font-size="12">Faible CO₂ • Jusqu'à 200kg • Périphérie</text>
+  <text x="76" y="494" fill="#FF6B35" font-family="system-ui" font-size="12" font-weight="600">Disponible dans 30min</text>
+  <text x="310" y="471" fill="#FF6B35" font-family="system-ui" font-size="14" font-weight="600">5€</text>
+  
+  <!-- Suivi actuel -->
+  <rect x="16" y="548" width="343" height="140" rx="10" fill="white"/>
+  <text x="32" y="578" fill="#111" font-family="system-ui" font-size="18" font-weight="600">📍 Suivi en cours</text>
+  
+  <!-- Livraison en cours -->
+  <rect x="32" y="592" width="311" height="80" rx="8" fill="#F0FDF4"/>
+  <circle cx="52" cy="612" r="8" fill="#22C55E"/>
+  <text x="72" y="608" fill="#111" font-family="system-ui" font-size="14" font-weight="600">Livraison #LIV-2024-001</text>
+  <text x="72" y="624" fill="#666" font-family="system-ui" font-size="12">Vélo-cargo • En route vers destination</text>
+  <text x="72" y="640" fill="#22C55E" font-family="system-ui" font-size="12" font-weight="600">Arrivée estimée: 14:30</text>
+  <text x="72" y="656" fill="#666" font-family="system-ui" font-size="12">📍 2.1 km restants</text>
+  <rect x="275" y="602" width="60" height="24" rx="12" fill="#22C55E"/>
+  <text x="305" y="618" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">SUIVRE</text>
+  
+  <!-- Bottom navigation -->
+  <rect y="756" width="375" height="56" fill="#004D40"/>
+  
+  <!-- Nav items -->
+  <g opacity="0.7">
+    <!-- Accueil -->
+    <text x="37" y="772" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">🏠</text>
+    <text x="37" y="790" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">Accueil</text>
+  </g>
+  
+  <g opacity="0.7">
+    <!-- Transport -->
+    <text x="112" y="772" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">🚲</text>
+    <text x="112" y="790" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">Transport</text>
+  </g>
+  
+  <g>
+    <!-- Livraisons - active -->
+    <text x="187" y="772" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">📦</text>
+    <text x="187" y="790" fill="white" font-family="system-ui" font-size="10" font-weight="600" text-anchor="middle">Livraisons</text>
+  </g>
+  
+  <g opacity="0.7">
+    <!-- Marketplace -->
+    <text x="262" y="772" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">🛒</text>
+    <text x="262" y="790" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">Marketplace</text>
+  </g>
+  
+  <g opacity="0.7">
+    <!-- Profil -->
+    <text x="337" y="772" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">🌱</text>
+    <text x="337" y="790" fill="white" font-family="system-ui" font-size="10" text-anchor="middle">Profil</text>
+  </g>
+</svg>
