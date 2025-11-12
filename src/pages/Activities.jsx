@@ -75,7 +75,7 @@ export default function Activities() {
   ]
 
   const ActivityCard = ({ activity, isCourse }) => {
-    const statusColor = activity.status === 'completed' ? '#4CAF50' : '#f44336'
+    const statusColor = activity.status === 'completed' ? '#4CAF50' : '#FF9800'
     const statusText = activity.status === 'completed' ? 'Terminé' : 'Annulé'
 
     return (
@@ -142,7 +142,7 @@ export default function Activities() {
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      background: '#f44336',
+                      background: '#FF9800',
                       marginRight: '8px'
                     }} />
                     <span style={{ fontSize: '14px', color: '#333' }}>{activity.to}</span>

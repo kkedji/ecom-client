@@ -17,6 +17,7 @@ import SignUp from './pages/SignUp'
 import ApiTest from './pages/ApiTest'
 import Reductions from './pages/Reductions'
 import Activities from './pages/Activities'
+import MapService from './pages/MapService'
 
 export default function App(){
   const { language, toggleLanguage } = useLanguage()
@@ -43,13 +44,15 @@ export default function App(){
     }
   }
 
-  // Pages sans header ni drawer (Login, SignUp)
+  // Pages sans header ni drawer (Login, SignUp, Home)
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup'
+  const isHomePage = location.pathname === '/'
+  const showHeader = !isAuthPage && !isHomePage
 
   return (
     <div className="app">
-      {/* Header - masqué sur les pages d'authentification */}
-      {!isAuthPage && (
+      {/* Header - masqué sur les pages d'authentification et Home */}
+      {showHeader && (
         <header className="app-header">
           <button className="menu-button" onClick={toggleDrawer}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -200,6 +203,7 @@ export default function App(){
           <Route path="/carbon" element={<PrivateRoute><Carbon/></PrivateRoute>} />
           <Route path="/reductions" element={<PrivateRoute><Reductions/></PrivateRoute>} />
           <Route path="/activities" element={<PrivateRoute><Activities/></PrivateRoute>} />
+          <Route path="/map-service" element={<PrivateRoute><MapService/></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings/></PrivateRoute>} />
           <Route path="/help" element={<PrivateRoute><Help/></PrivateRoute>} />
           <Route path="/api-test" element={<PrivateRoute><ApiTest/></PrivateRoute>} />

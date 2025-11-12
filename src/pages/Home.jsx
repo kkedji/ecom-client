@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { formatAmount } from '../utils/formatCurrency'
 import BannerCarousel from '../components/BannerCarousel'
 import WalletPage from '../components/WalletPage'
+import NotificationsMenu from '../components/NotificationsMenu'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -72,24 +73,7 @@ export default function Home() {
               <line x1="1" y1="10" x2="23" y2="10"/>
             </svg>
           </button>
-          <button
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: '#E8F5E9',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-          </button>
+          <NotificationsMenu />
         </div>
       </div>
 
@@ -181,7 +165,7 @@ export default function Home() {
               </svg>
             }
             label="Livraison"
-            onClick={() => navigate('/delivery')}
+            onClick={() => navigate('/map-service', { state: { serviceType: 'Livraison' } })}
           />
           <ServiceCard
             icon={
@@ -204,16 +188,16 @@ export default function Home() {
               </svg>
             }
             label="Taxi"
-            onClick={() => navigate('/transport')}
+            onClick={() => navigate('/map-service', { state: { serviceType: 'Taxi' } })}
           />
           <ServiceCard
             icon={
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                <polygon points="12 2 15.09 8.26 22 9 27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
             }
             label="Lux+"
-            onClick={() => navigate('/transport')}
+            onClick={() => navigate('/map-service', { state: { serviceType: 'Lux+' } })}
           />
         </div>
 
@@ -231,7 +215,7 @@ export default function Home() {
               </svg>
             }
             label="Driver"
-            onClick={() => navigate('/transport')}
+            onClick={() => navigate('/map-service', { state: { serviceType: 'Driver' } })}
           />
         </div>
       </div>

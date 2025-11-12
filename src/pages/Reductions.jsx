@@ -51,19 +51,41 @@ export default function Reductions() {
         background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
         padding: '16px',
         paddingTop: '40px',
-        paddingBottom: '60px',
-        color: 'white'
+        paddingBottom: '80px',
+        color: 'white',
+        position: 'relative'
       }}>
         <h1 style={{
           fontSize: '24px',
           fontWeight: 'bold',
           margin: 0,
-          textAlign: 'center'
+          textAlign: 'center',
+          marginBottom: '24px'
         }}>Réductions</h1>
+        
+        {/* Cercle icône */}
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        }}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <rect x="3" y="8" width="18" height="4" rx="1"/>
+            <rect x="3" y="8" width="18" height="12" rx="2"/>
+            <path d="M12 8v4"/>
+            <path d="M8 16h8"/>
+          </svg>
+        </div>
       </div>
 
       <div style={{
-        marginTop: '-20px',
+        marginTop: '-40px',
         padding: '0 16px'
       }}>
         <div style={{

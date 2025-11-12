@@ -17,22 +17,40 @@ export const WalletProvider = ({ children }) => {
   const [balance, setBalance] = useState(0)
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(false)
+  const [initialized, setInitialized] = useState(false)
 
   // Charger le solde depuis le user au démarrage
   useEffect(() => {
     if (user?.wallet?.balance !== undefined) {
       setBalance(user.wallet.balance)
+      setInitialized(true)
+    } else if (user && !initialized) {
+      // Si user existe mais pas de wallet, initialiser à 0
+      setBalance(0)
+      setInitialized(true)
     }
-  }, [user])
+  }, [user, initialized])
 
-  // Charger les données du portefeuille au démarrage
+  // Charger les données du portefeuille au démarrage (sans écraser le solde)
   useEffect(() => {
-    if (isAuthenticated()) {
-      loadWalletData()
+    if (isAuthenticated() && initialized) {
+      loadTransactions()
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, initialized])
 
-  // Fonction pour charger les données du portefeuille
+  // Fonction pour charger uniquement les transactions
+  const loadTransactions = async () => {
+    try {
+      const transactionsResult = await apiService.getTransactions()
+      if (transactionsResult.success) {
+        setTransactions(transactionsResult.data.transactions)
+      }
+    } catch (error) {
+      console.error('Error loading transactions:', error)
+    }
+  }
+
+  // Fonction pour charger les données du portefeuille (balance + transactions)
   const loadWalletData = async () => {
     setLoading(true)
     try {
@@ -43,10 +61,7 @@ export const WalletProvider = ({ children }) => {
       }
 
       // Charger les transactions
-      const transactionsResult = await apiService.getTransactions()
-      if (transactionsResult.success) {
-        setTransactions(transactionsResult.data.transactions)
-      }
+      await loadTransactions()
     } catch (error) {
       console.error('Error loading wallet data:', error)
     } finally {
