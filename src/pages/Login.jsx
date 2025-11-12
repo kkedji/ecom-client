@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logoImage from '../assets/images/ecom-logo.png'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -48,136 +49,220 @@ const Login = () => {
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f0f8f0',
-      padding: '20px'
+      alignItems: 'stretch',
+      backgroundColor: '#f0f8f0'
     }}>
+      {/* Section Logo - Côté gauche */}
       <div style={{
-        backgroundColor: 'white',
-        padding: '40px',
-        borderRadius: '16px',
-        boxShadow: '0 8px 24px rgba(76, 175, 80, 0.15)',
-        width: '100%',
-        maxWidth: '400px'
+        flex: '1',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#4CAF50',
+        padding: '60px 40px',
+        minHeight: '100vh'
       }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{
-            width: '100px',
-            height: '100px',
-            margin: '0 auto 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+        <div style={{
+          textAlign: 'center',
+          maxWidth: '400px'
+        }}>
+          <img 
+            src={logoImage}
+            alt="ECOM Logo"
+            style={{
+              width: '200px',
+              height: '200px',
+              objectFit: 'contain',
+              marginBottom: '32px',
+              filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.2))'
+            }}
+          />
+          <h1 style={{
+            color: 'white',
+            fontSize: '42px',
+            fontWeight: 'bold',
+            margin: '0 0 16px 0',
+            textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>ECOM</h1>
+          <p style={{
+            color: 'rgba(255,255,255,0.95)',
+            fontSize: '18px',
+            lineHeight: '1.6',
+            margin: 0
           }}>
-            <img 
-              src="/assets/images/ecom-logo.png" 
-              alt="ECOM Logo"
+            Votre solution complète pour le transport, la livraison et le marketplace au Togo
+          </p>
+        </div>
+      </div>
+
+      {/* Section Formulaire - Côté droit */}
+      <div style={{
+        flex: '1',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px',
+        backgroundColor: 'white'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '450px'
+        }}>
+          <div style={{ marginBottom: '48px' }}>
+            <h2 style={{
+              margin: '0 0 12px 0',
+              fontSize: '32px',
+              fontWeight: '700',
+              color: '#2E7D32'
+            }}>Connexion</h2>
+            <p style={{
+              margin: 0,
+              fontSize: '16px',
+              color: '#666'
+            }}>Entrez votre numéro de téléphone pour continuer</p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '10px',
+                fontSize: '15px',
+                fontWeight: '600',
+                color: '#333'
+              }}>Numéro de téléphone</label>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{
+                  padding: '14px 18px',
+                  backgroundColor: '#E8F5E9',
+                  border: '2px solid #A5D6A7',
+                  borderRight: 'none',
+                  borderRadius: '8px 0 0 8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: '#2E7D32'
+                }}>+228</span>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  disabled={loading}
+                  placeholder="90151369"
+                  autoFocus
+                  style={{
+                    flex: 1,
+                    padding: '14px 18px',
+                    border: '2px solid #A5D6A7',
+                    borderRadius: '0 8px 8px 0',
+                    fontSize: '16px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    backgroundColor: loading ? '#f5f5f5' : 'white'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#4CAF50';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(76, 175, 80, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#A5D6A7';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div style={{
+                padding: '14px 18px',
+                marginBottom: '24px',
+                backgroundColor: '#ffebee',
+                border: '2px solid #ef5350',
+                borderRadius: '8px',
+                color: '#c62828',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
-                height: '100%',
-                objectFit: 'contain'
+                padding: '16px',
+                backgroundColor: loading ? '#A5D6A7' : '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '17px',
+                fontWeight: '700',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: loading ? 'none' : '0 4px 12px rgba(76, 175, 80, 0.3)',
+                transform: loading ? 'none' : 'translateY(0)'
               }}
-              onError={(e) => {
-                // Fallback au cercle vert si image non trouvée
-                e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = '<div style="width: 80px; height: 80px; background: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);"><h1 style="color: white; font-size: 42px; font-weight: bold; margin: 0;">E</h1></div>';
+              onMouseOver={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = '#388E3C';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.4)';
+                }
               }}
-            />
-          </div>
-          <h2 style={{
-            margin: '0 0 8px 0',
-            fontSize: '24px',
-            fontWeight: '600',
-            color: '#2E7D32'
-          }}>Bienvenue sur ECOM</h2>
-          <p style={{
-            margin: 0,
-            fontSize: '14px',
-            color: '#66BB6A'
-          }}>Connectez-vous avec votre numéro de téléphone</p>
-        </div>
+              onMouseOut={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = '#4CAF50';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
+                }
+              }}
+            >
+              {loading ? 'Connexion en cours...' : 'Se connecter'}
+            </button>
 
-        {/* Formulaire */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#333'
-            }}>Numéro de téléphone</label>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{
-                padding: '12px 16px',
-                backgroundColor: '#E8F5E9',
-                border: '1px solid #A5D6A7',
-                borderRight: 'none',
-                borderRadius: '4px 0 0 4px',
-                fontSize: '16px',
-                fontWeight: '500',
-                color: '#2E7D32'
-              }}>+228</span>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                disabled={loading}
-                placeholder="90151369"
-                autoFocus
-                style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  border: '1px solid #A5D6A7',
-                  borderRadius: '0 4px 4px 0',
-                  fontSize: '16px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
-                onBlur={(e) => e.target.style.borderColor = '#A5D6A7'}
-              />
-            </div>
-          </div>
-
-          {error && (
             <div style={{
-              padding: '12px 16px',
-              marginBottom: '24px',
-              backgroundColor: '#ffebee',
-              border: '1px solid #ef5350',
-              borderRadius: '4px',
-              color: '#c62828',
-              fontSize: '14px'
+              marginTop: '32px',
+              textAlign: 'center'
             }}>
-              {error}
+              <p style={{
+                fontSize: '14px',
+                color: '#666',
+                marginBottom: '12px'
+              }}>
+                Pas encore de compte ?
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/signup')}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'transparent',
+                  color: '#4CAF50',
+                  border: '2px solid #4CAF50',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#E8F5E9';
+                  e.target.style.borderColor = '#2E7D32';
+                  e.target.style.color = '#2E7D32';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.borderColor = '#4CAF50';
+                  e.target.style.color = '#4CAF50';
+                }}
+              >
+                S'inscrire maintenant
+              </button>
             </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '14px',
-              backgroundColor: loading ? '#A5D6A7' : '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s',
-              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)'
-            }}
-            onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#388E3C')}
-            onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#4CAF50')}
-          >
-            {loading ? 'Connexion...' : 'Se connecter'}
-          </button>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   )

@@ -29,7 +29,7 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? ['https://yourdomain.com'] 
+      ? ['https://ecomapp-client.netlify.app'] 
       : ['http://localhost:3000', 'http://localhost:5173'],
     methods: ['GET', 'POST']
   }
@@ -40,7 +40,7 @@ app.use(helmet());
 app.use(compression());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
+    ? ['https://ecomapp-client.netlify.app'] 
     : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));

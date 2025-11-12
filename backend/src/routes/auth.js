@@ -63,6 +63,10 @@ const normalizePhoneNumber = (phone) => {
 
 // Générer un token JWT
 const generateTokens = (userId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET non configuré dans les variables d\'environnement');
+  }
+  
   const accessToken = jwt.sign(
     { userId },
     process.env.JWT_SECRET,
@@ -71,7 +75,7 @@ const generateTokens = (userId) => {
   
   const refreshToken = jwt.sign(
     { userId },
-    process.env.JWT_REFRESH_SECRET,
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
   );
   
