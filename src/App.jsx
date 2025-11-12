@@ -18,6 +18,7 @@ import ApiTest from './pages/ApiTest'
 import Reductions from './pages/Reductions'
 import Activities from './pages/Activities'
 import MapService from './pages/MapService'
+import Shop from './pages/Shop'
 
 export default function App(){
   const { language, toggleLanguage } = useLanguage()
@@ -204,6 +205,7 @@ export default function App(){
           <Route path="/reductions" element={<PrivateRoute><Reductions/></PrivateRoute>} />
           <Route path="/activities" element={<PrivateRoute><Activities/></PrivateRoute>} />
           <Route path="/map-service" element={<PrivateRoute><MapService/></PrivateRoute>} />
+          <Route path="/shop" element={<PrivateRoute><Shop/></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings/></PrivateRoute>} />
           <Route path="/help" element={<PrivateRoute><Help/></PrivateRoute>} />
           <Route path="/api-test" element={<PrivateRoute><ApiTest/></PrivateRoute>} />

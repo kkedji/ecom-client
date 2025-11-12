@@ -71,7 +71,7 @@ export default function BottomNav() {
       </button>
 
       <button
-        onClick={() => navigate('/marketplace')}
+        onClick={() => navigate('/shop')}
         style={{
           flex: 1,
           background: 'transparent',
@@ -81,7 +81,7 @@ export default function BottomNav() {
           alignItems: 'center',
           gap: '4px',
           cursor: 'pointer',
-          color: location.pathname === '/marketplace' ? '#4CAF50' : '#757575',
+          color: location.pathname === '/shop' ? '#4CAF50' : '#757575',
           padding: '8px'
         }}
       >
