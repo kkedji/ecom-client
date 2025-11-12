@@ -50,12 +50,13 @@ const Login = () => {
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'stretch',
-      backgroundColor: '#f0f8f0'
+      backgroundColor: '#f0f8f0',
+      flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
     }}>
-      {/* Section Logo - Côté gauche */}
+      {/* Section Logo - Côté gauche (masqué sur mobile) */}
       <div style={{
         flex: '1',
-        display: 'flex',
+        display: window.innerWidth <= 768 ? 'none' : 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',

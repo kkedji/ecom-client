@@ -22,5 +22,9 @@ export const formatCurrency = (amount) => {
  * @returns {string} - Le montant formatté avec devise (ex: "2 500 F")
  */
 export const formatAmount = (amount, currency = 'F') => {
+  // Gérer les valeurs nulles/undefined
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return `0 ${currency}`
+  }
   return `${formatCurrency(amount)} ${currency}`
 }

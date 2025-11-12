@@ -4,6 +4,7 @@ import { useLanguage } from './LanguageContext'
 import { useTranslation } from './i18n'
 import { useAuth } from './context/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
+import BottomNav from './components/BottomNav'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Transport from './pages/Transport'
@@ -14,6 +15,8 @@ import Settings from './pages/Settings'
 import Help from './pages/Help'
 import SignUp from './pages/SignUp'
 import ApiTest from './pages/ApiTest'
+import Reductions from './pages/Reductions'
+import Activities from './pages/Activities'
 
 export default function App(){
   const { language, toggleLanguage } = useLanguage()
@@ -83,7 +86,7 @@ export default function App(){
             </svg>
           </div>
           <div className="drawer-user-info">
-            <h3>{user?.name || 'Utilisateur'}</h3>
+            <h3>{user?.firstName || user?.name || 'Utilisateur'}</h3>
             <p>{user?.phoneNumber || 'Non connecté'}</p>
           </div>
         </div>
@@ -195,11 +198,16 @@ export default function App(){
           <Route path="/delivery" element={<PrivateRoute><Delivery/></PrivateRoute>} />
           <Route path="/marketplace" element={<PrivateRoute><Marketplace/></PrivateRoute>} />
           <Route path="/carbon" element={<PrivateRoute><Carbon/></PrivateRoute>} />
+          <Route path="/reductions" element={<PrivateRoute><Reductions/></PrivateRoute>} />
+          <Route path="/activities" element={<PrivateRoute><Activities/></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings/></PrivateRoute>} />
           <Route path="/help" element={<PrivateRoute><Help/></PrivateRoute>} />
           <Route path="/api-test" element={<PrivateRoute><ApiTest/></PrivateRoute>} />
         </Routes>
       </main>
+
+      {/* Bottom Navigation pour mobile */}
+      <BottomNav />
     </div>
   )
 }

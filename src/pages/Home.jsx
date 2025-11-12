@@ -1,389 +1,286 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useLanguage } from '../LanguageContext'
-import { useTranslation } from '../i18n'
+import { useNavigate } from 'react-router-dom'
 import { useWallet } from '../context/WalletContext'
+import { useAuth } from '../context/AuthContext'
 import { formatAmount } from '../utils/formatCurrency'
-import MapComponent from '../components/MapComponent'
+import BannerCarousel from '../components/BannerCarousel'
 import WalletPage from '../components/WalletPage'
 
-export default function Home(){
-  const { language } = useLanguage()
-  const t = useTranslation(language)
+export default function Home() {
+  const navigate = useNavigate()
   const { balance } = useWallet()
-  const [selectedService, setSelectedService] = useState(null)
-  const [showMap, setShowMap] = useState(false)
+  const { user } = useAuth()
   const [showWallet, setShowWallet] = useState(false)
 
-  const services = [
-    { 
-      id: 'taxi', 
-      name: 'Taxi', 
-      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="4" y="9" width="16" height="10" rx="2"/>
-        <path d="M6 9V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/>
-        <circle cx="8" cy="19" r="2"/>
-        <circle cx="16" cy="19" r="2"/>
-        <path d="M4 12h16"/>
-      </svg>, 
-      color: '#FFF3E0', 
-      textColor: '#212121' 
-    },
-    { 
-      id: 'lux', 
-      name: 'Lux+', 
-      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-      </svg>, 
-      color: '#F3E5F5', 
-      textColor: '#212121' 
-    },
-    { 
-      id: 'driver', 
-      name: 'Driver', 
-      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M5 17h14v-5l-3-3H8l-3 3v5z"/>
-        <circle cx="7" cy="17" r="2"/>
-        <circle cx="17" cy="17" r="2"/>
-        <path d="M5 9l1.5-4.5h11L19 9"/>
-      </svg>, 
-      color: '#E3F2FD', 
-      textColor: '#212121' 
-    },
-    { 
-      id: 'delivery', 
-      name: 'Livraison', 
-      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-        <line x1="3" y1="9" x2="21" y2="9"/>
-        <line x1="9" y1="21" x2="9" y2="9"/>
-      </svg>, 
-      color: '#FFE0B2', 
-      textColor: '#212121' 
-    }
-  ]
-
-  const handleServiceSelect = (service) => {
-    setSelectedService(service.name)
-    setShowMap(true)
-  }
-
-  const handleDestinationSelect = (destination) => {
-    console.log('Destination sélectionnée:', destination, 'pour le service:', selectedService)
-    // Ici vous pourriez naviguer vers une page de confirmation ou démarrer la course
-  }
-
-  const handleBackToServices = () => {
-    setShowMap(false)
-    setSelectedService(null)
-  }
-
-  if (showMap && selectedService) {
-    return (
-      <div>
-        <div style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          background: '#1B5E20',
-          color: 'white',
-          padding: '16px',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          <button
-            onClick={handleBackToServices}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'white',
-              fontSize: '20px',
-              marginRight: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            ←
-          </button>
-          <span style={{fontSize: '18px', fontWeight: '500'}}>
-            Sélectionner une destination
-          </span>
-        </div>
-        <MapComponent 
-          selectedService={selectedService}
-          onDestinationSelect={handleDestinationSelect}
-        />
-      </div>
-    )
-  }
-
-  // Afficher le portefeuille si demandé
+  // Si le wallet est ouvert, afficher la page wallet
   if (showWallet) {
     return <WalletPage onClose={() => setShowWallet(false)} />
   }
 
   return (
-    <>
-      {/* Wallet Section */}
-      <section 
-        className="home-wallet"
-        onClick={() => setShowWallet(true)}
-        style={{ cursor: 'pointer' }}
-      >
-        <div className="wallet-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-            <line x1="1" y1="10" x2="23" y2="10"/>
-          </svg>
-        </div>
-        <div className="wallet-info">
-          <h3>Portefeuille</h3>
-          <p className="wallet-amount">{formatAmount(balance)}</p>
-        </div>
-      </section>
-
-      {/* Transport Services Section */}
-      <section className="services-section">
-        <h2 className="services-title">Services de Transport</h2>
-        
-        <div className="transport-grid">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              onClick={() => handleServiceSelect(service)}
-              className="transport-item"
-              style={{
-                background: service.color,
-                borderRadius: '20px',
-                padding: '16px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                border: 'none',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px',
-                  margin: '0 auto 8px'
-                }}
-              >
-                {service.icon}
-              </div>
-              <div style={{
-                fontSize: '14px',
-                fontWeight: '700',
-                color: service.textColor
-              }}>
-                {service.name}
-              </div>
-              <div style={{
-                fontSize: '11px',
-                color: '#757575',
-                marginTop: '2px',
-                fontWeight: '400'
-              }}>
-                {service.id === 'taxi' && '36 cal'}
-                {service.id === 'lux' && 'Premium'}
-                {service.id === 'driver' && 'Avec chauffeur'}
-                {service.id === 'delivery' && '34 cal'}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Other Services Section */}
-      <section className="services-section">
-        <h2 className="services-title">Autres Services</h2>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '12px',
-          marginBottom: '24px'
-        }}>
-          <Link to="/marketplace" style={{
+    <div style={{
+      background: '#F5F5F5',
+      minHeight: '100vh',
+      paddingBottom: '80px'
+    }}>
+      {/* Header avec icônes */}
+      <div style={{
+        padding: '16px',
+        background: 'white',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '16px'
+      }}>
+        <button
+          onClick={() => navigate('/settings')}
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
+            background: '#E8F5E9',
+            border: 'none',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            textDecoration: 'none',
-            color: '#212121'
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'white',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v6m0 6v6m8.66-15.66l-4.24 4.24m-4.24 4.24l-4.24 4.24M23 12h-6m-6 0H1m18.36 8.66l-4.24-4.24m-4.24-4.24L6.64 3.52"/>
+          </svg>
+        </button>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: '#E8F5E9',
+              border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              border: '1px solid #e0e0e0'
+              cursor: 'pointer',
+              position: 'relative'
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+          </button>
+          <button
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: '#E8F5E9',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Contenu principal avec padding horizontal */}
+      <div style={{ padding: '0 16px' }}>
+        {/* Carrousel de bannières */}
+        <BannerCarousel />
+
+        {/* Section Portefeuille */}
+        <div
+          onClick={() => setShowWallet(true)}
+          style={{
+            background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              background: 'white',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{
+                fontSize: '14px',
+                color: '#2E7D32',
+                fontWeight: '500',
+                marginBottom: '4px'
+              }}>Portefeuille</div>
+              <div style={{
+                fontSize: '24px',
+                fontWeight: 'bold',
+                color: '#1B5E20'
+              }}>{formatAmount(balance)}</div>
+            </div>
+          </div>
+          <button
+            style={{
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '12px 20px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)'
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>+</span>
+            Recharger
+          </button>
+        </div>
+
+        {/* Services principaux - Grille 2x2 */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '12px',
+          marginBottom: '20px'
+        }}>
+          <ServiceCard
+            icon={
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 17h14v-5l-3-3H8l-3 3v5z"/>
+                <circle cx="7" cy="17" r="2"/>
+                <circle cx="17" cy="17" r="2"/>
+                <path d="M5 9l1.5-4.5h11L19 9"/>
+              </svg>
+            }
+            label="Livraison"
+            onClick={() => navigate('/delivery')}
+          />
+          <ServiceCard
+            icon={
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <circle cx="9" cy="21" r="1"/>
                 <circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
               </svg>
-            </div>
-            <span style={{fontSize: '12px', fontWeight: '500', textAlign: 'center'}}>Shop</span>
-          </Link>
-          
-          <Link to="/carbon" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textDecoration: 'none',
-            color: '#212121'
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              border: '1px solid #e0e0e0'
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            }
+            label="Shop"
+            onClick={() => navigate('/marketplace')}
+          />
+          <ServiceCard
+            icon={
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="4" y="9" width="16" height="10" rx="2"/>
+                <path d="M6 9V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/>
+                <circle cx="8" cy="19" r="2"/>
+                <circle cx="16" cy="19" r="2"/>
               </svg>
-            </div>
-            <span style={{fontSize: '12px', fontWeight: '500', textAlign: 'center'}}>Carbon</span>
-          </Link>
-
-          <Link to="/settings" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textDecoration: 'none',
-            color: '#212121'
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              border: '1px solid #e0e0e0'
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M12 1v6m0 6v6m5.2-13.2l-1.4 1.4m-5.6 5.6l-1.4 1.4m8.4 0l-1.4-1.4m-5.6-5.6l-1.4-1.4"/>
+            }
+            label="Taxi"
+            onClick={() => navigate('/transport')}
+          />
+          <ServiceCard
+            icon={
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
-            </div>
-            <span style={{fontSize: '12px', fontWeight: '500', textAlign: 'center'}}>Plus</span>
-          </Link>
-
-          <Link to="/help" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textDecoration: 'none',
-            color: '#212121'
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              border: '1px solid #e0e0e0'
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-            </div>
-            <span style={{fontSize: '12px', fontWeight: '500', textAlign: 'center'}}>Aide</span>
-          </Link>
+            }
+            label="Lux+"
+            onClick={() => navigate('/transport')}
+          />
         </div>
-      </section>
 
-      {/* Quick Actions */}
-      <section className="quick-actions">
-        <h2 className="services-title">Actions Rapides</h2>
-        
+        {/* Service supplémentaire */}
         <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          marginBottom: '16px'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '12px'
         }}>
-          <div style={{
-            padding: '16px',
-            borderBottom: '1px solid #f0f0f0',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '16px'}}>
-              <rect x="3" y="8" width="18" height="4" rx="1"/>
-              <path d="M12 8v13"/>
-              <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
-              <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
-            </svg>
-            <div>
-              <div style={{fontSize: '16px', fontWeight: '500'}}>Inviter des amis</div>
-              <div style={{fontSize: '12px', color: '#757575'}}>Gagnez des crédits</div>
-            </div>
-          </div>
-          
-          <div style={{
-            padding: '16px',
-            borderBottom: '1px solid #f0f0f0',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '16px'}}>
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-              <polyline points="10 9 9 9 8 9"/>
-            </svg>
-            <div>
-              <div style={{fontSize: '16px', fontWeight: '500'}}>Mes courses</div>
-              <div style={{fontSize: '12px', color: '#757575'}}>Historique des trajets</div>
-            </div>
-          </div>
-          
-          <div style={{
-            padding: '16px',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '16px'}}>
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-              <line x1="1" y1="10" x2="23" y2="10"/>
-            </svg>
-            <div>
-              <div style={{fontSize: '16px', fontWeight: '500'}}>Recharger le portefeuille</div>
-              <div style={{fontSize: '12px', color: '#757575'}}>Ajouter des fonds</div>
-            </div>
-          </div>
+          <ServiceCard
+            icon={
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            }
+            label="Driver"
+            onClick={() => navigate('/transport')}
+          />
         </div>
-      </section>
-    </>
+      </div>
+    </div>
+  )
+}
+
+// Composant ServiceCard
+function ServiceCard({ icon, label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: 'white',
+        border: 'none',
+        borderRadius: '16px',
+        padding: '24px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '12px',
+        cursor: 'pointer',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        transition: 'all 0.2s ease'
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)'
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(76, 175, 80, 0.2)'
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'
+      }}
+    >
+      <div style={{
+        width: '64px',
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#4CAF50'
+      }}>
+        {icon}
+      </div>
+      <span style={{
+        fontSize: '14px',
+        fontWeight: '600',
+        color: '#212121'
+      }}>{label}</span>
+    </button>
   )
 }

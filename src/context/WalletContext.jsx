@@ -13,10 +13,17 @@ export const useWallet = () => {
 }
 
 export const WalletProvider = ({ children }) => {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const [balance, setBalance] = useState(0)
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(false)
+
+  // Charger le solde depuis le user au démarrage
+  useEffect(() => {
+    if (user?.wallet?.balance !== undefined) {
+      setBalance(user.wallet.balance)
+    }
+  }, [user])
 
   // Charger les données du portefeuille au démarrage
   useEffect(() => {
