@@ -46,7 +46,19 @@ class ApiService {
       return { success: true, data }
     } catch (error) {
       console.error('Login error:', error)
-      return { success: false, error: error.message }
+      
+      // Messages d'erreur en français plus explicites
+      let errorMessage = 'Impossible de se connecter au serveur'
+      
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Impossible de contacter le serveur. Vérifiez votre connexion internet.'
+      } else if (error.message.includes('NetworkError')) {
+        errorMessage = 'Erreur réseau. Veuillez réessayer.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      return { success: false, error: errorMessage }
     }
   }
 

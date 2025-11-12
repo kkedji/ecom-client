@@ -1,7 +1,23 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import logo from '../assets/images/ecom-logo.png'
 
 function LoadingScreen() {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval)
+          return 100
+        }
+        return prev + 2
+      })
+    }, 30)
+
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div style={{
       position: 'fixed',
@@ -16,33 +32,46 @@ function LoadingScreen() {
       backgroundColor: '#fff',
       zIndex: 9999
     }}>
-      <div style={{
-        animation: 'spin 2s linear infinite'
-      }}>
+      {/* Logo sans rotation */}
+      <div>
         <img 
           src={logo} 
           alt="Ecom Logo" 
           style={{
-            width: '120px',
-            height: '120px',
+            width: '150px',
+            height: '150px',
             objectFit: 'contain'
           }}
         />
       </div>
-      <p style={{
-        marginTop: '24px',
-        fontSize: '16px',
-        color: '#666',
-        fontWeight: 500
+
+      {/* Barre de progression */}
+      <div style={{
+        width: '250px',
+        height: '6px',
+        backgroundColor: '#e0e0e0',
+        borderRadius: '10px',
+        marginTop: '40px',
+        overflow: 'hidden'
       }}>
-        Chargement...
+        <div style={{
+          width: `${progress}%`,
+          height: '100%',
+          backgroundColor: '#4CAF50',
+          borderRadius: '10px',
+          transition: 'width 0.3s ease'
+        }} />
+      </div>
+
+      {/* Pourcentage */}
+      <p style={{
+        marginTop: '16px',
+        fontSize: '14px',
+        color: '#4CAF50',
+        fontWeight: 600
+      }}>
+        {progress}%
       </p>
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   )
 }

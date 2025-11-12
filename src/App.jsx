@@ -3,7 +3,6 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from './LanguageContext'
 import { useTranslation } from './i18n'
 import { useAuth } from './context/AuthContext'
-import SplashScreen from './components/SplashScreen'
 import LoadingScreen from './components/LoadingScreen'
 import PrivateRoute from './components/PrivateRoute'
 import Login from './pages/Login'
@@ -22,14 +21,14 @@ export default function App(){
   const t = useTranslation(language)
   const { user, logout } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [showSplash, setShowSplash] = useState(true)
+  const [showLoading, setShowLoading] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Hide splash screen after 3 seconds
+  // Hide loading screen after 3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowSplash(false)
+      setShowLoading(false)
     }, 3000)
     
     return () => clearTimeout(timer)
@@ -52,39 +51,46 @@ export default function App(){
     }
   }
 
-  // Show loading screen while splash is active
-  if (showSplash) {
+  // Show loading screen at startup
+  if (showLoading) {
     return <LoadingScreen />
   }
 
+  // Pages sans header ni drawer (Login, SignUp)
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup'
+
   return (
     <div className="app">
-      {/* Header */}
-      <header className="app-header">
-        <button className="menu-button" onClick={toggleDrawer}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        </button>
-        <h1>{getPageTitle()}</h1>
-        <button className="notification-button">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-        </button>
-      </header>
+      {/* Header - masqué sur les pages d'authentification */}
+      {!isAuthPage && (
+        <header className="app-header">
+          <button className="menu-button" onClick={toggleDrawer}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <h1>{getPageTitle()}</h1>
+          <button className="notification-button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+        </header>
+      )}
 
-      {/* Drawer Overlay */}
-      <div 
-        className={`drawer-overlay ${drawerOpen ? 'open' : ''}`}
-        onClick={closeDrawer}
-      />
+      {/* Drawer Overlay - masqué sur les pages d'authentification */}
+      {!isAuthPage && (
+        <>
+          <div 
+            className={`drawer-overlay ${drawerOpen ? 'open' : ''}`}
+            onClick={closeDrawer}
+          />
 
-      {/* Navigation Drawer */}
-      <nav className={`drawer ${drawerOpen ? 'open' : ''}`}>
+          {/* Navigation Drawer */}
+          <nav className={`drawer ${drawerOpen ? 'open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-avatar">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -192,6 +198,8 @@ export default function App(){
           </div>
         </div>
       </nav>
+        </>
+      )}
 
       {/* Main Content */}
       <main className="page">
@@ -208,9 +216,6 @@ export default function App(){
           <Route path="/api-test" element={<PrivateRoute><ApiTest/></PrivateRoute>} />
         </Routes>
       </main>
-
-      {/* Splash Screen */}
-      <SplashScreen isVisible={showSplash} />
     </div>
   )
 }

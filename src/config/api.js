@@ -1,6 +1,8 @@
 // Configuration de l'API backend
 const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  // En production, utiliser les routes relatives (Netlify Functions)
+  // En dev, utiliser localhost:5000
+  BASE_URL: import.meta.env.MODE === 'production' ? '' : 'http://localhost:5000',
   ENDPOINTS: {
     // Auth
     LOGIN: '/api/auth/login',
