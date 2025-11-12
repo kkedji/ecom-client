@@ -1,11 +1,14 @@
-# Backend Dockerfile
-FROM node:18-alpine
+# Backend Dockerfile - Use Debian instead of Alpine for OpenSSL 1.1 compatibility
+FROM node:18-bullseye-slim
 
-# Installer les dépendances système
-RUN apk add --no-cache \
+# Install system dependencies including OpenSSL 1.1
+RUN apt-get update -y && \
+    apt-get install -y \
     postgresql-client \
+    openssl \
+    libssl1.1 \
     curl \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Créer le répertoire de travail
 WORKDIR /app
@@ -23,9 +26,8 @@ RUN npx prisma generate
 # Copier le code source
 COPY src/ ./src/
 
-# Créer un utilisateur non-root
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# Créer un utilisateur non-root (Debian syntax)
+RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
 # Changer la propriété des fichiers
 RUN chown -R nodejs:nodejs /app
