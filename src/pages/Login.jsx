@@ -72,7 +72,7 @@ const Login = () => {
             justifyContent: 'center'
           }}>
             <img 
-              src="/src/assets/images/ecom-logo.png" 
+              src="/assets/images/ecom-logo.png" 
               alt="ECOM Logo"
               style={{
                 width: '100%',

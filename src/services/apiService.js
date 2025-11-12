@@ -25,8 +25,9 @@ class ApiService {
 
   // Connexion utilisateur
   async login(phone, password) {
+    let response
     try {
-      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.LOGIN), {
+      response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.LOGIN), {
         method: 'POST',
         headers: API_CONFIG.HEADERS,
         body: JSON.stringify({ phone, password })

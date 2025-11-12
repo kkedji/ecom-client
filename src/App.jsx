@@ -3,7 +3,6 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from './LanguageContext'
 import { useTranslation } from './i18n'
 import { useAuth } from './context/AuthContext'
-import LoadingScreen from './components/LoadingScreen'
 import PrivateRoute from './components/PrivateRoute'
 import Login from './pages/Login'
 import Home from './pages/Home'
@@ -21,18 +20,8 @@ export default function App(){
   const t = useTranslation(language)
   const { user, logout } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [showLoading, setShowLoading] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
-
-  // Hide loading screen after 3 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoading(false)
-    }, 3000)
-    
-    return () => clearTimeout(timer)
-  }, [])
 
   const toggleDrawer = () => setDrawerOpen(!drawerOpen)
   const closeDrawer = () => setDrawerOpen(false)
@@ -49,11 +38,6 @@ export default function App(){
       case '/help': return 'Aide'
       default: return 'Ecom'
     }
-  }
-
-  // Show loading screen at startup
-  if (showLoading) {
-    return <LoadingScreen />
   }
 
   // Pages sans header ni drawer (Login, SignUp)
