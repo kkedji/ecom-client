@@ -468,7 +468,7 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
  *     tags: [Auth]
  */
 router.post('/login', asyncHandler(async (req, res) => {
-  const { phone, password } = req.body;
+  const { phone, password, firstName, lastName, email } = req.body;
   
   if (!phone) {
     throw new AppError('Numéro de téléphone requis', 400);
@@ -488,8 +488,9 @@ router.post('/login', asyncHandler(async (req, res) => {
     const newUser = await prisma.user.create({
       data: {
         phoneNumber: normalizedPhone,
-        firstName: 'Test',
-        lastName: 'User',
+        firstName: firstName || 'Test',
+        lastName: lastName || 'User',
+        email: email || null,
         isVerified: true,
         wallet: {
           create: {
@@ -512,6 +513,7 @@ router.post('/login', asyncHandler(async (req, res) => {
         phoneNumber: newUser.phoneNumber,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
+        email: newUser.email,
         wallet: newUser.wallet
       }
     });

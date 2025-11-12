@@ -30,9 +30,9 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   // Connexion
-  const login = async (phoneNumber) => {
+  const login = async (phoneNumber, password = null, additionalData = {}) => {
     try {
-      const result = await apiService.login(phoneNumber)
+      const result = await apiService.login(phoneNumber, password, additionalData)
       
       if (result.success) {
         const { token: newToken, user: newUser } = result.data

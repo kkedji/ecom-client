@@ -19,12 +19,14 @@ import Reductions from './pages/Reductions'
 import Activities from './pages/Activities'
 import MapService from './pages/MapService'
 import Shop from './pages/Shop'
+import ConfirmModal from './components/ConfirmModal'
 
 export default function App(){
   const { language, toggleLanguage } = useLanguage()
   const t = useTranslation(language)
   const { user, logout } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -172,10 +174,7 @@ export default function App(){
           </div>
           
           <div className="drawer-item" onClick={() => {
-            if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-              logout()
-              navigate('/login')
-            }
+            setShowLogoutModal(true)
             closeDrawer()
           }}>
             <div className="drawer-item-icon">
@@ -214,6 +213,22 @@ export default function App(){
 
       {/* Bottom Navigation pour mobile */}
       <BottomNav />
+
+      {/* Modale de confirmation de déconnexion */}
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => {
+          logout()
+          navigate('/login')
+          setShowLogoutModal(false)
+        }}
+        title="Déconnexion"
+        message="Êtes-vous sûr de vouloir vous déconnecter ?"
+        confirmText="Se déconnecter"
+        cancelText="Annuler"
+        type="warning"
+      />
     </div>
   )
 }

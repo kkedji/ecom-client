@@ -47,40 +47,18 @@ export default function SignUp() {
     setLoading(true)
 
     try {
-      // Créer d'abord le compte avec toutes les informations
-      const userData = {
-        phone: formData.phoneNumber,
+      // Tenter de se connecter directement avec les informations complètes
+      const loginResult = await login(formData.phoneNumber, null, {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email
-      }
+      })
       
-      // Appeler l'API register depuis apiService
-      const apiService = await import('../services/apiService')
-      const registerResult = await apiService.default.register(userData)
-      
-      if (registerResult.success) {
-        // Puis connecter l'utilisateur
-        const loginResult = await login(formData.phoneNumber)
-        
-        if (loginResult.success) {
-          // Rediriger vers la page d'accueil
-          navigate('/')
-        } else {
-          setError('Compte créé mais erreur de connexion. Veuillez vous connecter manuellement.')
-        }
+      if (loginResult.success) {
+        // Si la connexion réussit, rediriger vers l'accueil
+        navigate('/')
       } else {
-        // Si l'utilisateur existe déjà, tenter la connexion
-        if (registerResult.error?.includes('existe') || registerResult.error?.includes('already')) {
-          const loginResult = await login(formData.phoneNumber)
-          if (loginResult.success) {
-            navigate('/')
-          } else {
-            setError('Utilisateur existe déjà. Veuillez vous connecter.')
-          }
-        } else {
-          setError(registerResult.error || 'Erreur lors de l\'inscription')
-        }
+        setError(loginResult.error || 'Erreur lors de l\'inscription')
       }
     } catch (err) {
       console.error('Signup error:', err)
