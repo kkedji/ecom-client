@@ -112,16 +112,11 @@ const Login = () => {
         }}>
           <div style={{ marginBottom: '48px' }}>
             <h2 style={{
-              margin: '0 0 12px 0',
+              margin: 0,
               fontSize: '32px',
               fontWeight: '700',
               color: '#2E7D32'
             }}>Connexion</h2>
-            <p style={{
-              margin: 0,
-              fontSize: '16px',
-              color: '#666'
-            }}>Entrez votre numéro de téléphone pour continuer</p>
           </div>
 
           <form onSubmit={handleSubmit}>

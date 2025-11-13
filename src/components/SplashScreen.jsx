@@ -1,16 +1,36 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import logo from '../assets/images/ecom-logo.png';
 
 const SplashScreen = ({ onComplete }) => {
+  const [progress, setProgress] = useState(0);
+
   useEffect(() => {
     // Durée du splash screen (3 secondes)
-    const timer = setTimeout(() => {
+    const duration = 3000;
+    const interval = 30; // Mettre à jour tous les 30ms
+    const increment = (interval / duration) * 100;
+
+    const progressTimer = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + increment;
+        if (newProgress >= 100) {
+          clearInterval(progressTimer);
+          return 100;
+        }
+        return newProgress;
+      });
+    }, interval);
+
+    const completeTimer = setTimeout(() => {
       if (onComplete) {
         onComplete();
       }
-    }, 3000);
+    }, duration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearInterval(progressTimer);
+      clearTimeout(completeTimer);
+    };
   }, [onComplete]);
 
   return (
@@ -27,52 +47,71 @@ const SplashScreen = ({ onComplete }) => {
       background: 'linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%)',
       zIndex: 9999
     }}>
-      {/* Logo animé */}
+      {/* Logo avec cadre arrondi ombré */}
       <div style={{
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '24px',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.2)',
         animation: 'pulse 1.5s ease-in-out infinite',
-        marginBottom: '20px'
+        marginBottom: '50px'
       }}>
         <img 
           src={logo} 
           alt="ECOM Logo" 
           style={{
-            width: '150px',
-            height: '150px',
+            width: '120px',
+            height: '120px',
             objectFit: 'contain',
-            filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))'
+            display: 'block'
           }}
         />
       </div>
 
-      {/* Nom de l'application */}
-      <h1 style={{
-        color: 'white',
-        fontSize: '32px',
-        fontWeight: 'bold',
-        marginBottom: '10px',
-        textShadow: '0 2px 10px rgba(0,0,0,0.2)'
-      }}>
-        ECOM
-      </h1>
-
       {/* Sous-titre */}
       <p style={{
-        color: 'rgba(255,255,255,0.9)',
+        color: 'rgba(255,255,255,0.95)',
         fontSize: '16px',
-        marginBottom: '40px'
+        marginBottom: '30px',
+        textAlign: 'center',
+        fontWeight: '500'
       }}>
         Votre plateforme tout-en-un
       </p>
 
-      {/* Loader animé */}
+      {/* Barre de progression */}
       <div style={{
-        width: '50px',
-        height: '50px',
-        border: '4px solid rgba(255,255,255,0.3)',
-        borderTop: '4px solid white',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite'
-      }}></div>
+        width: '280px',
+        marginBottom: '15px'
+      }}>
+        <div style={{
+          width: '100%',
+          height: '8px',
+          backgroundColor: 'rgba(255,255,255,0.2)',
+          borderRadius: '10px',
+          overflow: 'hidden',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${progress}%`,
+            backgroundColor: 'white',
+            borderRadius: '10px',
+            transition: 'width 0.3s ease',
+            boxShadow: '0 0 10px rgba(255,255,255,0.5)'
+          }}></div>
+        </div>
+      </div>
+
+      {/* Pourcentage */}
+      <div style={{
+        color: 'white',
+        fontSize: '18px',
+        fontWeight: '600',
+        textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+      }}>
+        {Math.round(progress)}%
+      </div>
 
       {/* CSS pour les animations */}
       <style>{`
