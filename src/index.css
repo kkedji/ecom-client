@@ -659,3 +659,5 @@ body{
 @media(min-width:700px){
   .page{max-width:700px;margin:0 auto}
 }
+
+/* ===== MODE DESKTOP UNIQUEMENT POUR ADMIN ===== */

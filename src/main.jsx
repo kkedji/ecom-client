@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext'
 import { WalletProvider } from './context/WalletContext'
 import App from './App'
 import './index.css'
+import './styles/admin.css'
 import './registerServiceWorker'
 
 createRoot(document.getElementById('root')).render(

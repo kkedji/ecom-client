@@ -74,6 +74,22 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(updatedUser))
   }
 
+  // Rafraîchir les données utilisateur depuis le serveur
+  const refreshUser = async () => {
+    try {
+      const result = await apiService.getProfile()
+      if (result.success && result.data) {
+        const updatedUser = result.data.user || result.data
+        updateUser(updatedUser)
+        return { success: true }
+      }
+      return { success: false, error: result.error }
+    } catch (error) {
+      console.error('Refresh user error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   const value = {
     user,
     token,
@@ -81,7 +97,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated,
-    updateUser
+    updateUser,
+    refreshUser
   }
 
   return (

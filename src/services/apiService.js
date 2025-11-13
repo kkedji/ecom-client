@@ -196,6 +196,316 @@ class ApiService {
       return { success: false, error: error.message }
     }
   }
+
+  // Mettre à jour le profil
+  async updateProfile(profileData) {
+    try {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.UPDATE_PROFILE), {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(profileData)
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de mise à jour du profil')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Update profile error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer les courses de transport
+  async getTransportOrders() {
+    try {
+      const response = await fetch(getApiUrl('/api/orders/transport'), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération des courses')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get transport orders error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer les commandes de livraison
+  async getDeliveryOrders() {
+    try {
+      const response = await fetch(getApiUrl('/api/orders/delivery'), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération des commandes')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get delivery orders error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer les codes promo
+  async getPromoCodes() {
+    try {
+      const response = await fetch(getApiUrl('/api/promo-codes'), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération des codes promo')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get promo codes error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Appliquer un code promo
+  async applyPromoCode(code) {
+    try {
+      const response = await fetch(getApiUrl('/api/promo-codes/apply'), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ code })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Code promo invalide')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Apply promo code error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer les boutiques du marketplace
+  async getShops(filters = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      if (filters.category && filters.category !== 'all') {
+        queryParams.append('category', filters.category)
+      }
+      if (filters.search) {
+        queryParams.append('search', filters.search)
+      }
+
+      const url = queryParams.toString() 
+        ? `${getApiUrl('/api/shops')}?${queryParams}` 
+        : getApiUrl('/api/shops')
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération des boutiques')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get shops error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer les éco-habitudes
+  async getEcoHabits() {
+    try {
+      const response = await fetch(getApiUrl('/api/eco-habits'), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération des éco-habitudes')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get eco habits error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Déclarer une éco-habitude
+  async submitEcoHabit(habitData) {
+    try {
+      const response = await fetch(getApiUrl('/api/eco-habits'), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(habitData)
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de déclaration de l\'éco-habitude')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Submit eco habit error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer le profil carbone
+  async getCarbonProfile() {
+    try {
+      const response = await fetch(getApiUrl('/api/eco-habits/profile'), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération du profil carbone')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get carbon profile error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer les notifications
+  async getNotifications() {
+    try {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération des notifications')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get notifications error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Marquer une notification comme lue
+  async markNotificationAsRead(notificationId) {
+    try {
+      const response = await fetch(getApiUrl(`${API_CONFIG.ENDPOINTS.NOTIFICATIONS}/${notificationId}/read`), {
+        method: 'PUT',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de mise à jour de la notification')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Mark notification as read error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Récupérer les lieux favoris
+  async getFavoritePlaces() {
+    try {
+      const response = await fetch(getApiUrl('/api/user/favorites'), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de récupération des lieux favoris')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Get favorite places error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Ajouter un lieu favori
+  async addFavoritePlace(placeData) {
+    try {
+      const response = await fetch(getApiUrl('/api/user/favorites'), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(placeData)
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur d\'ajout du lieu favori')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Add favorite place error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Supprimer un lieu favori
+  async deleteFavoritePlace(placeId) {
+    try {
+      const response = await fetch(getApiUrl(`/api/user/favorites/${placeId}`), {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de suppression du lieu favori')
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Delete favorite place error:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 export default new ApiService()

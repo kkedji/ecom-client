@@ -1,103 +1,242 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import apiService from '../services/apiService'
 
-export default function Marketplace(){
-  const [referralCode, setReferralCode] = useState('AAJ1VT')
-  const [promoCode, setPromoCode] = useState('')
+export default function Marketplace() {
+  const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [loading, setLoading] = useState(false)
+  const [shops, setShops] = useState([])
+
+  const categories = [
+    { id: 'all', name: 'Tout', icon: '🏪' },
+    { id: 'food', name: 'Alimentation', icon: '🍔' },
+    { id: 'fashion', name: 'Mode', icon: '👕' },
+    { id: 'electronics', name: 'Électronique', icon: '📱' },
+    { id: 'home', name: 'Maison', icon: '🏠' },
+    { id: 'beauty', name: 'Beauté', icon: '💄' },
+    { id: 'sports', name: 'Sport', icon: '⚽' },
+    { id: 'books', name: 'Livres', icon: '📚' },
+    { id: 'other', name: 'Autre', icon: '🛍️' }
+  ]
+
+  useEffect(() => {
+    loadShops()
+  }, [selectedCategory, searchTerm])
+
+  const loadShops = async () => {
+    setLoading(true)
+    try {
+      const result = await apiService.getShops({
+        category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        search: searchTerm || undefined
+      })
+      if (result.success) {
+        setShops(result.data || [])
+      }
+    } catch (error) {
+      console.error('Erreur chargement boutiques:', error)
+      setShops([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div style={{padding: '16px'}}>
-      <div style={{textAlign: 'center', marginBottom: '32px'}}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '16px'
-        }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            background: 'linear-gradient(135deg, #E91E63, #9C27B0)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: '24px'
-          }}>
-            👥
-          </div>
-        </div>
-        <h2 style={{color: '#1B5E20', margin: '0 0 16px', fontSize: '20px'}}>Réductions</h2>
-      </div>
+    <div style={{
+      minHeight: '100vh',
+      background: '#F5F5F5',
+      paddingBottom: '80px'
+    }}>
 
-      <div style={{background: 'white', borderRadius: '8px', padding: '20px', marginBottom: '24px'}}>
-        <h3 style={{margin: '0 0 8px', fontSize: '16px', fontWeight: '600'}}>Partager le code de parrainage</h3>
-        <p style={{margin: '0 0 16px', fontSize: '14px', color: '#757575'}}>
-          Partager le code de parrainage pour bénéficier de réductions sur vos courses
-        </p>
-        
-        <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-          <div style={{
-            flex: 1,
-            padding: '12px 16px',
-            border: '1px solid #E0E0E0',
-            borderRadius: '8px',
-            background: '#F5F5F5',
-            fontSize: '16px',
-            fontWeight: '600',
-            letterSpacing: '2px'
-          }}>
-            {referralCode}
-          </div>
-          <button style={{
-            padding: '12px 20px',
-            background: '#1B5E20',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}>
-            Partager
-          </button>
-        </div>
-      </div>
-
-      <div style={{background: 'white', borderRadius: '8px', padding: '20px', marginBottom: '24px'}}>
-        <h3 style={{margin: '0 0 16px', fontSize: '16px', fontWeight: '600', textAlign: 'center'}}>Mon code Promo</h3>
-        
-        <div style={{display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '16px'}}>
+      {/* Barre de recherche */}
+      <div style={{ padding: '16px' }}>
+        <div style={{ position: 'relative', marginBottom: '16px' }}>
           <input
             type="text"
-            placeholder="Code Promo"
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Rechercher une boutique ou un produit..."
             style={{
-              flex: 1,
-              padding: '12px 16px',
-              border: '1px solid #E0E0E0',
-              borderRadius: '8px',
-              fontSize: '16px'
+              width: '100%',
+              padding: '14px 16px 14px 44px',
+              fontSize: '15px',
+              border: '2px solid #E0E0E0',
+              borderRadius: '12px',
+              outline: 'none',
+              boxSizing: 'border-box',
+              background: 'white'
             }}
           />
-          <button style={{
-            padding: '12px 20px',
-            background: '#1B5E20',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}>
-            Appliquer
-          </button>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#757575"
+            strokeWidth="2"
+            style={{
+              position: 'absolute',
+              left: '14px',
+              top: '50%',
+              transform: 'translateY(-50%)'
+            }}
+          >
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
         </div>
 
-        <h4 style={{margin: '16px 0 8px', fontSize: '14px', fontWeight: '600', textAlign: 'center'}}>
-          Liste des code promos
-        </h4>
+        {/* Catégories */}
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          overflowX: 'auto',
+          paddingBottom: '8px',
+          marginBottom: '20px'
+        }}>
+          {categories.map(category => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category.id)}
+              style={{
+                padding: '10px 16px',
+                background: selectedCategory === category.id ? '#4CAF50' : 'white',
+                color: selectedCategory === category.id ? 'white' : '#424242',
+                border: selectedCategory === category.id ? 'none' : '2px solid #E0E0E0',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.3s'
+              }}
+            >
+              {category.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Contenu */}
+        {loading ? (
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '60px 20px',
+            textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          }}>
+            <div style={{
+              width: '50px',
+              height: '50px',
+              border: '4px solid #E0E0E0',
+              borderTop: '4px solid #4CAF50',
+              borderRadius: '50%',
+              margin: '0 auto 20px',
+              animation: 'spin 1s linear infinite'
+            }} />
+            <p style={{ fontSize: '15px', color: '#757575', margin: 0 }}>
+              Chargement des boutiques...
+            </p>
+            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          </div>
+        ) : shops.length === 0 ? (
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '60px 20px',
+            textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '20px', color: '#212121', fontWeight: '600' }}>
+              Aucune boutique disponible
+            </h3>
+            <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#757575', lineHeight: '1.6' }}>
+              {searchTerm || selectedCategory !== 'all' 
+                ? 'Aucune boutique ne correspond à vos critères de recherche.'
+                : 'Les boutiques seront bientôt disponibles.'}
+            </p>
+            {(searchTerm || selectedCategory !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchTerm('')
+                  setSelectedCategory('all')
+                }}
+                style={{
+                  padding: '12px 24px',
+                  background: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Réinitialiser les filtres
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            gap: '12px'
+          }}>
+            {shops.map(shop => (
+              <div
+                key={shop.id}
+                onClick={() => navigate(`/shop/${shop.id}`)}
+                style={{
+                  background: 'white',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)'
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'
+                }}
+              >
+                <div style={{
+                  width: '100%',
+                  height: '100px',
+                  background: '#F5F5F5',
+                  borderRadius: '8px',
+                  marginBottom: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '40px'
+                }}>
+                  {shop.logo || '🏪'}
+                </div>
+                <h4 style={{
+                  margin: '0 0 4px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#212121'
+                }}>
+                  {shop.name}
+                </h4>
+                <p style={{
+                  margin: 0,
+                  fontSize: '12px',
+                  color: '#757575'
+                }}>
+                  {shop.category}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

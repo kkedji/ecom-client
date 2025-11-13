@@ -53,28 +53,7 @@ export default function Home() {
           </svg>
         </button>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: '#E8F5E9',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              position: 'relative'
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-              <line x1="1" y1="10" x2="23" y2="10"/>
-            </svg>
-          </button>
-          <NotificationsMenu />
-        </div>
+        <NotificationsMenu />
       </div>
 
       {/* Contenu principal avec padding horizontal */}
@@ -176,7 +155,7 @@ export default function Home() {
               </svg>
             }
             label="Shop"
-            onClick={() => navigate('/marketplace')}
+            onClick={() => navigate('/shop')}
           />
           <ServiceCard
             icon={
@@ -193,7 +172,13 @@ export default function Home() {
           <ServiceCard
             icon={
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <polygon points="12 2 15.09 8.26 22 9 27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                <path d="M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 0V7m0 0a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v4"/>
+                <path d="M14 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 0V7"/>
+                <path d="M4 10h16"/>
+                <path d="M17 7h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-1"/>
+                <circle cx="17" cy="17" r="2"/>
+                <circle cx="7" cy="17" r="2"/>
+                <path d="M3 7h16l1 10H2z"/>
               </svg>
             }
             label="Lux+"
@@ -201,7 +186,7 @@ export default function Home() {
           />
         </div>
 
-        {/* Service supplémentaire */}
+        {/* Services supplémentaires */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
@@ -210,12 +195,32 @@ export default function Home() {
           <ServiceCard
             icon={
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v6l4 2"/>
+                <circle cx="5.5" cy="17.5" r="2.5"/>
+                <circle cx="18.5" cy="17.5" r="2.5"/>
+                <path d="M5.5 17.5V12l3-4h6l3 4v5.5"/>
+                <path d="M8.5 8h7"/>
+                <path d="M6 12h12"/>
+                <path d="M12 8V5"/>
+                <circle cx="12" cy="4" r="1"/>
               </svg>
             }
             label="Driver"
             onClick={() => navigate('/map-service', { state: { serviceType: 'Driver' } })}
+          />
+          <ServiceCard
+            icon={
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="5" r="2"/>
+                <path d="M10 22v-6l-2-4V8h8v4l-2 4v6"/>
+                <path d="M8 8L6 22"/>
+                <path d="M16 8l2 14"/>
+                <path d="M12 12h4"/>
+                <circle cx="12" cy="12" r="7" strokeWidth="0.5" opacity="0.3"/>
+                <path d="M7 12h10" strokeWidth="0.5" opacity="0.3"/>
+              </svg>
+            }
+            label="Eco-habitudes"
+            onClick={() => navigate('/eco-habits')}
           />
         </div>
       </div>

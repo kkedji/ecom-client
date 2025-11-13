@@ -16,6 +16,8 @@ const marketplaceRoutes = require('./routes/marketplace');
 const userRoutes = require('./routes/user');
 const notificationRoutes = require('./routes/notifications');
 const webhookRoutes = require('./routes/webhooks');
+const adminRoutes = require('./routes/admin');
+const verificationRoutes = require('./routes/verification');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
@@ -85,6 +87,8 @@ app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/user', authenticateToken, userRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/verification', verificationRoutes);
 
 // Swagger documentation (in development)
 if (process.env.NODE_ENV !== 'production') {

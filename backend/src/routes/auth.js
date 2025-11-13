@@ -346,30 +346,58 @@ router.post('/register', asyncHandler(async (req, res) => {
     throw new AppError('Numéro de téléphone non vérifié. Vérifiez d\'abord votre numéro.', 400);
   }
 
-  // Mettre à jour les informations utilisateur
-  const updatedUser = await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      firstName,
-      lastName,
-      email,
-      profileImage,
-      isActive: true
-    },
-    include: {
-      wallet: true
-    }
-  });
-
-  // Créer un wallet si nécessaire
-  if (!updatedUser.wallet) {
-    await prisma.wallet.create({
+  // Mettre à jour les informations utilisateur et créer le wallet avec crédit initial
+  const result = await prisma.$transaction(async (tx) => {
+    // Mettre à jour l'utilisateur
+    const updatedUser = await tx.user.update({
+      where: { id: user.id },
       data: {
-        userId: updatedUser.id,
-        balance: 0
+        firstName,
+        lastName,
+        email,
+        profileImage,
+        isActive: true
+      },
+      include: {
+        wallet: true
       }
     });
-  }
+
+    // Créer un wallet avec crédit initial de 50,000 F si nécessaire
+    let wallet = updatedUser.wallet;
+    const initialBalance = 50000;
+
+    if (!wallet) {
+      wallet = await tx.wallet.create({
+        data: {
+          userId: updatedUser.id,
+          balance: initialBalance
+        }
+      });
+
+      // Créer la transaction de crédit initial
+      await tx.transaction.create({
+        data: {
+          userId: updatedUser.id,
+          walletId: wallet.id,
+          type: 'CREDIT',
+          amount: initialBalance,
+          balanceBefore: 0,
+          balanceAfter: initialBalance,
+          status: 'COMPLETED',
+          description: 'Crédit initial de bienvenue',
+          metadata: {
+            source: 'system',
+            reason: 'welcome_bonus'
+          }
+        }
+      });
+    }
+
+    return { ...updatedUser, wallet };
+  });
+
+  const updatedUser = result;
 
   // Générer les tokens
   const { accessToken, refreshToken } = generateTokens(updatedUser.id);
@@ -477,10 +505,12 @@ router.post('/login', asyncHandler(async (req, res) => {
   // Normaliser le numéro
   const normalizedPhone = normalizePhoneNumber(phone);
   
-  // Chercher l'utilisateur
+  // Chercher l'utilisateur (inclure isAdmin et role)
   const user = await prisma.user.findUnique({
     where: { phoneNumber: normalizedPhone },
-    include: { wallet: true }
+    include: { 
+      wallet: true 
+    }
   });
   
   // Pour les tests, créer un utilisateur si inexistant
@@ -514,6 +544,8 @@ router.post('/login', asyncHandler(async (req, res) => {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         email: newUser.email,
+        isAdmin: newUser.isAdmin || false,
+        role: newUser.role || 'USER',
         wallet: newUser.wallet
       }
     });
@@ -533,6 +565,8 @@ router.post('/login', asyncHandler(async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      isAdmin: user.isAdmin || false,
+      role: user.role || 'USER',
       wallet: user.wallet
     }
   });

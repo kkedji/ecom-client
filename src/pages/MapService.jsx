@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
 // Fix pour les icônes de marqueurs Leaflet
@@ -60,6 +59,12 @@ export default function MapService() {
   const [fromCoords, setFromCoords] = useState(null)
   const [toCoords, setToCoords] = useState(null)
 
+  // Récupérer les lieux favoris depuis localStorage
+  const favoritePlaces = useState(() => {
+    const saved = localStorage.getItem('favoritePlaces')
+    return saved ? JSON.parse(saved) : []
+  })[0]
+
   // Suggestions de lieux à Lomé avec coordonnées
   const lomePlaces = [
     { name: 'Aéroport International de Lomé', area: 'Aéroport', lat: 6.1656, lng: 1.2545 },
@@ -85,12 +90,24 @@ export default function MapService() {
   // Centre de Lomé par défaut
   const lomeCenter = [6.1319, 1.2223]
 
-  const filteredFromPlaces = lomePlaces.filter(place => 
+  // Convertir les lieux favoris au format compatible
+  const formattedFavorites = favoritePlaces.map(fav => ({
+    name: fav.name,
+    area: fav.type === 'home' ? '🏠 Favoris' : fav.type === 'work' ? '💼 Favoris' : '📍 Favoris',
+    lat: fav.lat,
+    lng: fav.lng,
+    isFavorite: true
+  }))
+
+  // Combiner lieux favoris et lieux de Lomé
+  const allPlaces = [...formattedFavorites, ...lomePlaces]
+
+  const filteredFromPlaces = allPlaces.filter(place => 
     place.name.toLowerCase().includes(searchFrom.toLowerCase()) ||
     place.area.toLowerCase().includes(searchFrom.toLowerCase())
   )
 
-  const filteredToPlaces = lomePlaces.filter(place => 
+  const filteredToPlaces = allPlaces.filter(place => 
     place.name.toLowerCase().includes(searchTo.toLowerCase()) ||
     place.area.toLowerCase().includes(searchTo.toLowerCase())
   )
@@ -212,13 +229,14 @@ export default function MapService() {
       <div style={{
         flex: 1,
         position: 'relative',
-        minHeight: '300px',
-        zIndex: 1
+        minHeight: '400px',
+        height: 'calc(100vh - 350px)',
+        zIndex: 0
       }}>
         <MapContainer 
           center={lomeCenter} 
           zoom={13} 
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
           zoomControl={false}
         >
           <TileLayer
@@ -308,8 +326,69 @@ export default function MapService() {
         borderTopLeftRadius: '24px',
         borderTopRightRadius: '24px',
         boxShadow: '0 -4px 12px rgba(0,0,0,0.1)',
-        position: 'relative'
+        position: 'relative',
+        zIndex: 10
       }}>
+        {/* Lieux favoris rapides */}
+        {favoritePlaces.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{
+              fontSize: '12px',
+              color: '#757575',
+              marginBottom: '12px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#4CAF50" stroke="#4CAF50" strokeWidth="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Lieux favoris
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              overflowX: 'auto',
+              paddingBottom: '8px'
+            }}>
+              {favoritePlaces.slice(0, 5).map((fav, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    if (!searchFrom) {
+                      setSearchFrom(fav.name)
+                      setFromCoords({ lat: fav.lat, lng: fav.lng })
+                    } else if (!searchTo) {
+                      setSearchTo(fav.name)
+                      setToCoords({ lat: fav.lat, lng: fav.lng })
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#E8F5E9',
+                    border: '2px solid #4CAF50',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: '#2E7D32',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span style={{ fontSize: '16px' }}>
+                    {fav.type === 'home' ? '🏠' : fav.type === 'work' ? '💼' : '📍'}
+                  </span>
+                  {fav.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Point de départ */}
         <div style={{ marginBottom: '16px', position: 'relative' }}>
           <label style={{
@@ -382,15 +461,29 @@ export default function MapService() {
                   style={{
                     padding: '12px 16px',
                     cursor: 'pointer',
-                    borderBottom: index < filteredFromPlaces.length - 1 ? '1px solid #F5F5F5' : 'none'
+                    borderBottom: index < filteredFromPlaces.length - 1 ? '1px solid #F5F5F5' : 'none',
+                    background: place.isFavorite ? '#E8F5E9' : 'white'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#F5F5F5'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                  onMouseEnter={(e) => e.currentTarget.style.background = place.isFavorite ? '#C8E6C9' : '#F5F5F5'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = place.isFavorite ? '#E8F5E9' : 'white'}
                 >
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '2px' }}>
+                  <div style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    color: place.isFavorite ? '#2E7D32' : '#333', 
+                    marginBottom: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    {place.isFavorite && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#4CAF50" stroke="#4CAF50" strokeWidth="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    )}
                     {place.name}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#757575' }}>
+                  <div style={{ fontSize: '12px', color: place.isFavorite ? '#4CAF50' : '#757575' }}>
                     {place.area}
                   </div>
                 </div>
@@ -471,15 +564,29 @@ export default function MapService() {
                   style={{
                     padding: '12px 16px',
                     cursor: 'pointer',
-                    borderBottom: index < filteredToPlaces.length - 1 ? '1px solid #F5F5F5' : 'none'
+                    borderBottom: index < filteredToPlaces.length - 1 ? '1px solid #F5F5F5' : 'none',
+                    background: place.isFavorite ? '#E8F5E9' : 'white'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#F5F5F5'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                  onMouseEnter={(e) => e.currentTarget.style.background = place.isFavorite ? '#C8E6C9' : '#F5F5F5'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = place.isFavorite ? '#E8F5E9' : 'white'}
                 >
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '2px' }}>
+                  <div style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    color: place.isFavorite ? '#2E7D32' : '#333', 
+                    marginBottom: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    {place.isFavorite && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#4CAF50" stroke="#4CAF50" strokeWidth="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    )}
                     {place.name}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#757575' }}>
+                  <div style={{ fontSize: '12px', color: place.isFavorite ? '#4CAF50' : '#757575' }}>
                     {place.area}
                   </div>
                 </div>

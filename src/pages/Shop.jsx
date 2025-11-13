@@ -1,14 +1,35 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import apiService from '../services/apiService'
 
 export default function Shop() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [promoCode, setPromoCode] = useState('')
   const [message, setMessage] = useState('')
+  const [promoCodes, setPromoCodes] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const referralCode = user?.referralCode || 'AA1JVT'
+
+  useEffect(() => {
+    loadPromoCodes()
+  }, [])
+
+  const loadPromoCodes = async () => {
+    setLoading(true)
+    try {
+      const result = await apiService.getPromoCodes()
+      if (result.success) {
+        setPromoCodes(result.data)
+      }
+    } catch (error) {
+      console.error('Erreur chargement codes promo:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleShareCode = async () => {
     const shareText = `Rejoins-moi sur ECOM et utilise mon code parrainage ${referralCode} pour profiter de réductions !`
@@ -29,7 +50,11 @@ export default function Shop() {
     }
   }
 
-  const handleApplyPromo = () => {
+  const handleGoToMarketplace = () => {
+    navigate('/marketplace')
+  }
+
+  const handleApplyPromo = async () => {
     if (!promoCode.trim()) {
       setMessage('Veuillez entrer un code promo')
       setTimeout(() => setMessage(''), 2000)
@@ -37,44 +62,29 @@ export default function Shop() {
     }
     
     setMessage('Code en cours de validation...')
-    // TODO: Appeler l'API pour valider le code promo
-    setTimeout(() => {
-      setMessage('Code appliqué avec succès !')
-      setPromoCode('')
-    }, 1000)
-  }
-
-  const handleGoToMarketplace = () => {
-    navigate('/marketplace')
+    try {
+      const result = await apiService.applyPromoCode(promoCode)
+      if (result.success) {
+        setMessage(`✅ Code appliqué ! -${result.data.discount}% sur votre prochaine commande`)
+        setPromoCode('')
+        setTimeout(() => setMessage(''), 3000)
+      } else {
+        setMessage(`❌ ${result.error}`)
+        setTimeout(() => setMessage(''), 3000)
+      }
+    } catch (error) {
+      setMessage('❌ Erreur lors de la validation du code')
+      setTimeout(() => setMessage(''), 3000)
+    }
   }
 
   return (
     <div style={{
       background: '#F5F5F5',
       minHeight: '100vh',
-      paddingBottom: '80px'
+      paddingBottom: '80px',
+      padding: '16px'
     }}>
-      {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
-        padding: '16px',
-        paddingTop: '40px',
-        paddingBottom: '60px',
-        color: 'white'
-      }}>
-        <h1 style={{
-          fontSize: '24px',
-          fontWeight: 'bold',
-          margin: 0,
-          textAlign: 'center'
-        }}>Shop</h1>
-      </div>
-
-      {/* Contenu */}
-      <div style={{
-        marginTop: '-20px',
-        padding: '0 16px'
-      }}>
         {/* Option 1: Partager mon code promo */}
         <div style={{
           background: 'white',
@@ -218,18 +228,14 @@ export default function Shop() {
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            marginBottom: '12px'
-          }}>
+          <div style={{ marginBottom: '12px' }}>
             <input
               type="text"
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-              placeholder="Entrez le code promo"
+              placeholder="Code promo"
               style={{
-                flex: 1,
+                width: '100%',
                 padding: '14px 16px',
                 fontSize: '16px',
                 border: '2px solid #E0E0E0',
@@ -237,25 +243,27 @@ export default function Shop() {
                 outline: 'none',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                fontWeight: '600'
+                fontWeight: '600',
+                boxSizing: 'border-box',
+                marginBottom: '12px'
               }}
             />
             <button
               onClick={handleApplyPromo}
               style={{
+                width: '100%',
                 background: '#FF9800',
                 color: 'white',
                 border: 'none',
                 borderRadius: '12px',
-                padding: '14px 24px',
+                padding: '14px',
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
                 boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)'
               }}
             >
-              Appliquer
+              Appliquer le code
             </button>
           </div>
 
@@ -270,6 +278,85 @@ export default function Shop() {
               fontWeight: '500'
             }}>
               {message}
+            </div>
+          )}
+
+          {/* Liste des codes promo disponibles */}
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid #E0E0E0',
+                borderTop: '4px solid #FF9800',
+                borderRadius: '50%',
+                margin: '0 auto',
+                animation: 'spin 1s linear infinite'
+              }} />
+              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : promoCodes.length > 0 && (
+            <div style={{ marginTop: '20px' }}>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#212121',
+                marginBottom: '12px'
+              }}>
+                Codes disponibles
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {promoCodes.map((promo, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      background: '#FFF3E0',
+                      border: '2px dashed #FF9800',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <div>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        color: '#F57C00',
+                        letterSpacing: '1px'
+                      }}>
+                        {promo.code}
+                      </div>
+                      <div style={{
+                        fontSize: '13px',
+                        color: '#757575',
+                        marginTop: '4px'
+                      }}>
+                        -{promo.discount}% • {promo.description}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setPromoCode(promo.code)
+                        handleApplyPromo()
+                      }}
+                      style={{
+                        background: '#FF9800',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '8px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Utiliser
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -347,39 +434,6 @@ export default function Shop() {
           </button>
         </div>
 
-        {/* Info: Comment commander une livraison */}
-        <div style={{
-          background: '#FFF9C4',
-          borderRadius: '16px',
-          padding: '20px',
-          border: '2px solid #FBC02D',
-          marginBottom: '20px'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '12px'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F57F17" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
-            <div>
-              <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: '#F57F17' }}>
-                Comment ça marche ?
-              </h3>
-              <p style={{ margin: 0, fontSize: '14px', color: '#F57F17', lineHeight: '1.6' }}>
-                <strong>Pour commander une livraison :</strong><br/>
-                1. Allez sur le Marketplace<br/>
-                2. Choisissez un marchand<br/>
-                3. Sélectionnez vos produits<br/>
-                4. Le marchand et un livreur seront alertés automatiquement
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

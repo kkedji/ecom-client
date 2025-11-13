@@ -62,12 +62,10 @@ export default function BottomNav() {
         }}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="4" y="9" width="16" height="10" rx="2"/>
-          <path d="M6 9V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/>
-          <circle cx="8" cy="19" r="2"/>
-          <circle cx="16" cy="19" r="2"/>
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
         </svg>
-        <span style={{fontSize: '11px', fontWeight: '500'}}>Transport</span>
+        <span style={{fontSize: '11px', fontWeight: '500'}}>Mes Activités</span>
       </button>
 
       <button

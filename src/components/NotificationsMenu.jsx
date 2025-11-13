@@ -1,43 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react'
+import apiService from '../services/apiService'
 
 export default function NotificationsMenu() {
   const [isOpen, setIsOpen] = useState(false)
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'order',
-      title: 'Commande livrée',
-      message: 'Votre commande #1234 a été livrée avec succès',
-      time: 'Il y a 5 min',
-      read: false
-    },
-    {
-      id: 2,
-      type: 'promo',
-      title: 'Nouvelle promotion',
-      message: '20% de réduction sur votre prochaine course',
-      time: 'Il y a 1h',
-      read: false
-    },
-    {
-      id: 3,
-      type: 'wallet',
-      title: 'Rechargement réussi',
-      message: 'Votre portefeuille a été crédité de 5000 F',
-      time: 'Il y a 3h',
-      read: true
-    },
-    {
-      id: 4,
-      type: 'system',
-      title: 'Mise à jour disponible',
-      message: 'Une nouvelle version de l\'application est disponible',
-      time: 'Hier',
-      read: true
-    }
-  ])
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const menuRef = useRef(null)
+
+  useEffect(() => {
+    loadNotifications()
+  }, [])
+
+  const loadNotifications = async () => {
+    setLoading(true)
+    try {
+      const result = await apiService.getNotifications()
+      if (result.success) {
+        setNotifications(result.data || [])
+      }
+    } catch (error) {
+      console.error('Erreur chargement notifications:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Fermer le menu si on clique à l'extérieur
   useEffect(() => {
@@ -56,16 +43,35 @@ export default function NotificationsMenu() {
     }
   }, [isOpen])
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = notifications.filter(n => !n.read && !n.isRead).length
 
-  const markAsRead = (id) => {
-    setNotifications(prev => prev.map(notif => 
-      notif.id === id ? { ...notif, read: true } : notif
-    ))
+  const markAsRead = async (id) => {
+    try {
+      const result = await apiService.markNotificationAsRead(id)
+      if (result.success) {
+        setNotifications(prev => prev.map(notif => 
+          notif.id === id ? { ...notif, read: true, isRead: true } : notif
+        ))
+      }
+    } catch (error) {
+      console.error('Erreur marquage notification:', error)
+      // Fallback local
+      setNotifications(prev => prev.map(notif => 
+        notif.id === id ? { ...notif, read: true } : notif
+      ))
+    }
   }
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })))
+  const markAllAsRead = async () => {
+    try {
+      // Marquer toutes les notifications non lues
+      const unreadNotifs = notifications.filter(n => !n.read && !n.isRead)
+      await Promise.all(unreadNotifs.map(n => apiService.markNotificationAsRead(n.id)))
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true, isRead: true })))
+    } catch (error) {
+      console.error('Erreur marquage toutes notifications:', error)
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })))
+    }
   }
 
   const getIcon = (type) => {
