@@ -55,16 +55,30 @@ export default function BannerCarousel() {
               objectFit: 'cover'
             }}
             onError={(e) => {
-              // Si l'image n'existe pas, afficher un placeholder
+              // Simplement cacher l'image si elle ne charge pas
               e.target.style.display = 'none'
-              e.target.parentElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;">
-                  <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">Ride the future...</h2>
-                  <p style="margin: 0; font-size: 14px; opacity: 0.9;">Déposez vos images dans public/banners/</p>
-                </div>
-              `
             }}
           />
+          
+          {/* Placeholder si l'image ne charge pas */}
+          <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            textAlign: 'center',
+            padding: '20px'
+          }}>
+            <h2 style={{ margin: '0 0 10px 0', fontSize: '24px', fontWeight: 'bold' }}>
+              ECOM Platform
+            </h2>
+            <p style={{ margin: '0', fontSize: '14px', opacity: 0.9 }}>
+              Votre plateforme tout-en-un
+            </p>
+          </div>
         </div>
       ))}
 

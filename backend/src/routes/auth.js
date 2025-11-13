@@ -413,7 +413,8 @@ router.post('/register', asyncHandler(async (req, res) => {
       email: updatedUser.email,
       profileImage: updatedUser.profileImage,
       role: updatedUser.role,
-      isVerified: updatedUser.isVerified
+      isVerified: updatedUser.isVerified,
+      wallet: updatedUser.wallet
     },
     tokens: {
       accessToken,
@@ -515,16 +516,20 @@ router.post('/login', asyncHandler(async (req, res) => {
   
   // Pour les tests, créer un utilisateur si inexistant
   if (!user) {
+    // Générer un mot de passe par défaut hashé
+    const defaultPassword = await bcrypt.hash('password123', 12);
+    
     const newUser = await prisma.user.create({
       data: {
         phoneNumber: normalizedPhone,
         firstName: firstName || 'Test',
         lastName: lastName || 'User',
         email: email || null,
+        password: defaultPassword,
         isVerified: true,
         wallet: {
           create: {
-            balance: 2500
+            balance: 50000
           }
         }
       },
@@ -586,6 +591,195 @@ router.post('/logout', authenticateToken, asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Déconnexion réussie'
+  });
+}));
+
+/**
+ * POST /api/auth/register-driver
+ * Inscription complète d'un driver (données personnelles + véhicule)
+ */
+router.post('/register-driver', asyncHandler(async (req, res) => {
+  // Validation du schéma
+  const driverSchema = Joi.object({
+    // Informations d'authentification
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    phone: Joi.string()
+      .pattern(/^(?:\+228|228)?[0-9]{8}$/)
+      .required(),
+    
+    // Informations personnelles
+    firstName: Joi.string().min(2).max(50).required(),
+    lastName: Joi.string().min(2).max(50).required(),
+    address: Joi.string().min(5).max(255).required(),
+    gender: Joi.string().valid('MALE', 'FEMALE').required(),
+    
+    // Informations du véhicule
+    vehicleType: Joi.string().valid('BERLINE', 'SUV', 'VAN', 'MOTO').required(),
+    vehicleBrand: Joi.string().min(2).max(50).required(),
+    vehicleModel: Joi.string().min(2).max(50).required(),
+    vehicleYear: Joi.number().integer().min(1990).max(new Date().getFullYear() + 1).required(),
+    licensePlate: Joi.string().min(2).max(20).required(),
+    licenseNumber: Joi.string().min(5).max(50).required()
+  });
+
+  const { error, value } = driverSchema.validate(req.body);
+  if (error) {
+    throw new AppError(error.details[0].message, 400);
+  }
+
+  const {
+    email,
+    password,
+    phone,
+    firstName,
+    lastName,
+    address,
+    gender,
+    vehicleType,
+    vehicleBrand,
+    vehicleModel,
+    vehicleYear,
+    licensePlate,
+    licenseNumber
+  } = value;
+
+  // Normaliser le numéro de téléphone
+  const normalizedPhone = normalizePhoneNumber(phone);
+
+  // Vérifier si l'email existe déjà
+  const existingUserByEmail = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() }
+  });
+
+  if (existingUserByEmail) {
+    throw new AppError('Cet email est déjà utilisé', 400);
+  }
+
+  // Vérifier si le téléphone existe déjà
+  const existingUserByPhone = await prisma.user.findUnique({
+    where: { phoneNumber: normalizedPhone }
+  });
+
+  if (existingUserByPhone) {
+    throw new AppError('Ce numéro de téléphone est déjà utilisé', 400);
+  }
+
+  // Vérifier si la plaque d'immatriculation existe déjà
+  const existingPlate = await prisma.driverProfile.findUnique({
+    where: { plateNumber: licensePlate.toUpperCase() }
+  });
+
+  if (existingPlate) {
+    throw new AppError('Cette plaque d\'immatriculation est déjà enregistrée', 400);
+  }
+
+  // Hasher le mot de passe
+  const hashedPassword = await bcrypt.hash(password, 12);
+
+  // Créer l'utilisateur, le profil driver et le wallet dans une transaction
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Créer l'utilisateur
+    const user = await tx.user.create({
+      data: {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        phoneNumber: normalizedPhone,
+        firstName,
+        lastName,
+        role: 'DRIVER', // Rôle spécifique pour les drivers
+        isVerified: true, // Auto-vérifié pour les drivers
+        isActive: true
+      }
+    });
+
+    // 2. Créer le profil driver
+    const driverProfile = await tx.driverProfile.create({
+      data: {
+        userId: user.id,
+        vehicleType,
+        vehicleBrand,
+        vehicleModel,
+        vehicleYear,
+        vehicleColor: 'Non spécifié', // Peut être ajouté plus tard
+        plateNumber: licensePlate.toUpperCase(),
+        licenseNumber,
+        address,
+        gender,
+        isOnline: false,
+        isAvailable: true,
+        status: 'PENDING_VERIFICATION', // En attente de vérification admin
+        rating: 0,
+        totalRides: 0
+      }
+    });
+
+    // 3. Créer le wallet avec crédit initial de 50,000 F
+    const initialBalance = 50000;
+    const wallet = await tx.wallet.create({
+      data: {
+        userId: user.id,
+        balance: initialBalance
+      }
+    });
+
+    // 4. Créer la transaction de crédit initial
+    await tx.transaction.create({
+      data: {
+        userId: user.id,
+        walletId: wallet.id,
+        type: 'CREDIT',
+        amount: initialBalance,
+        balanceBefore: 0,
+        balanceAfter: initialBalance,
+        status: 'COMPLETED',
+        description: 'Crédit initial de bienvenue',
+        metadata: {
+          source: 'system',
+          reason: 'welcome_bonus',
+          userType: 'driver'
+        }
+      }
+    });
+
+    return { user, driverProfile, wallet };
+  });
+
+  // Générer les tokens
+  const { accessToken, refreshToken } = generateTokens(result.user.id);
+
+  // Réponse
+  res.status(201).json({
+    success: true,
+    message: 'Inscription driver réussie',
+    token: accessToken,
+    user: {
+      id: result.user.id,
+      email: result.user.email,
+      phoneNumber: result.user.phoneNumber,
+      firstName: result.user.firstName,
+      lastName: result.user.lastName,
+      role: result.user.role,
+      driverProfile: {
+        id: result.driverProfile.id,
+        vehicleType: result.driverProfile.vehicleType,
+        vehicleBrand: result.driverProfile.vehicleBrand,
+        vehicleModel: result.driverProfile.vehicleModel,
+        vehicleYear: result.driverProfile.vehicleYear,
+        licensePlate: result.driverProfile.plateNumber,
+        licenseNumber: result.driverProfile.licenseNumber,
+        status: result.driverProfile.status,
+        rating: result.driverProfile.rating
+      },
+      wallet: {
+        id: result.wallet.id,
+        balance: result.wallet.balance
+      }
+    },
+    tokens: {
+      accessToken,
+      refreshToken
+    }
   });
 }));
 

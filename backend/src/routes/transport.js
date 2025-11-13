@@ -383,6 +383,423 @@ router.post('/accept-ride/:requestId', requireDriverProfile, asyncHandler(async 
 }));
 
 /**
+ * POST /api/transport/rides/:id/reject
+ * Refuser une course
+ */
+router.post('/rides/:id/reject', requireDriverProfile, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  const driverId = req.user.userId;
+
+  // Vérifier que la demande existe
+  const rideRequest = await prisma.rideRequest.findUnique({
+    where: { id },
+    include: { user: true }
+  });
+
+  if (!rideRequest) {
+    throw new AppError('Demande de course non trouvée', 404);
+  }
+
+  if (rideRequest.status !== 'PENDING') {
+    throw new AppError('Cette demande ne peut plus être refusée', 400);
+  }
+
+  // Logger le refus (optionnel - pour analytics)
+  await prisma.rideRequest.update({
+    where: { id },
+    data: {
+      metadata: {
+        ...rideRequest.metadata,
+        rejectedBy: [...(rideRequest.metadata?.rejectedBy || []), driverId],
+        lastRejectionReason: reason || 'Non spécifiée'
+      }
+    }
+  });
+
+  res.json({
+    success: true,
+    message: 'Course refusée'
+  });
+}));
+
+/**
+ * POST /api/transport/rides/:id/arrive-pickup
+ * Signaler l'arrivée au point de départ
+ */
+router.post('/rides/:id/arrive-pickup', requireDriverProfile, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const driverId = req.user.userId;
+
+  // Vérifier la course
+  const ride = await prisma.ride.findUnique({
+    where: { id },
+    include: { 
+      request: { 
+        include: { user: true } 
+      } 
+    }
+  });
+
+  if (!ride) {
+    throw new AppError('Course non trouvée', 404);
+  }
+
+  if (ride.driverId !== driverId) {
+    throw new AppError('Cette course ne vous appartient pas', 403);
+  }
+
+  if (ride.status !== 'ACCEPTED' && ride.status !== 'DRIVER_ARRIVING') {
+    throw new AppError('Statut de course invalide', 400);
+  }
+
+  // Mettre à jour le statut
+  const updatedRide = await prisma.ride.update({
+    where: { id },
+    data: { 
+      status: 'ARRIVED',
+      arrivedAtPickupAt: new Date()
+    }
+  });
+
+  await prisma.rideRequest.update({
+    where: { id: ride.requestId },
+    data: { status: 'ARRIVED' }
+  });
+
+  // Notifier le passager
+  socketService.emitToUser(ride.request.userId, 'driver-arrived', {
+    rideId: ride.id,
+    message: 'Votre chauffeur est arrivé'
+  });
+
+  res.json({
+    success: true,
+    message: 'Arrivée au point de départ signalée',
+    ride: {
+      id: updatedRide.id,
+      status: updatedRide.status,
+      arrivedAt: updatedRide.arrivedAtPickupAt
+    }
+  });
+}));
+
+/**
+ * POST /api/transport/rides/:id/start
+ * Démarrer la course
+ */
+router.post('/rides/:id/start', requireDriverProfile, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const driverId = req.user.userId;
+
+  // Vérifier la course
+  const ride = await prisma.ride.findUnique({
+    where: { id },
+    include: { 
+      request: { 
+        include: { user: true } 
+      } 
+    }
+  });
+
+  if (!ride) {
+    throw new AppError('Course non trouvée', 404);
+  }
+
+  if (ride.driverId !== driverId) {
+    throw new AppError('Cette course ne vous appartient pas', 403);
+  }
+
+  if (ride.status !== 'ARRIVED') {
+    throw new AppError('Vous devez d\'abord arriver au point de départ', 400);
+  }
+
+  // Mettre à jour le statut
+  const updatedRide = await prisma.ride.update({
+    where: { id },
+    data: { 
+      status: 'IN_PROGRESS',
+      startedAt: new Date()
+    }
+  });
+
+  await prisma.rideRequest.update({
+    where: { id: ride.requestId },
+    data: { status: 'IN_PROGRESS' }
+  });
+
+  // Notifier le passager
+  socketService.emitToUser(ride.request.userId, 'ride-started', {
+    rideId: ride.id,
+    message: 'La course a démarré'
+  });
+
+  res.json({
+    success: true,
+    message: 'Course démarrée',
+    ride: {
+      id: updatedRide.id,
+      status: updatedRide.status,
+      startedAt: updatedRide.startedAt
+    }
+  });
+}));
+
+/**
+ * POST /api/transport/rides/:id/arrive-destination
+ * Signaler l'arrivée à destination
+ */
+router.post('/rides/:id/arrive-destination', requireDriverProfile, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const driverId = req.user.userId;
+
+  // Vérifier la course
+  const ride = await prisma.ride.findUnique({
+    where: { id },
+    include: { 
+      request: { 
+        include: { user: true } 
+      } 
+    }
+  });
+
+  if (!ride) {
+    throw new AppError('Course non trouvée', 404);
+  }
+
+  if (ride.driverId !== driverId) {
+    throw new AppError('Cette course ne vous appartient pas', 403);
+  }
+
+  if (ride.status !== 'IN_PROGRESS') {
+    throw new AppError('La course doit être en cours', 400);
+  }
+
+  // Mettre à jour le statut
+  const updatedRide = await prisma.ride.update({
+    where: { id },
+    data: { 
+      arrivedAtDestinationAt: new Date()
+    }
+  });
+
+  // Notifier le passager
+  socketService.emitToUser(ride.request.userId, 'arrived-destination', {
+    rideId: ride.id,
+    message: 'Vous êtes arrivé à destination'
+  });
+
+  res.json({
+    success: true,
+    message: 'Arrivée à destination signalée',
+    ride: {
+      id: updatedRide.id,
+      status: updatedRide.status,
+      arrivedAt: updatedRide.arrivedAtDestinationAt
+    }
+  });
+}));
+
+/**
+ * POST /api/transport/rides/:id/complete
+ * Terminer la course
+ */
+router.post('/rides/:id/complete', requireDriverProfile, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const driverId = req.user.userId;
+  const { finalPrice } = req.body;
+
+  // Vérifier la course
+  const ride = await prisma.ride.findUnique({
+    where: { id },
+    include: { 
+      request: { 
+        include: { user: true } 
+      } 
+    }
+  });
+
+  if (!ride) {
+    throw new AppError('Course non trouvée', 404);
+  }
+
+  if (ride.driverId !== driverId) {
+    throw new AppError('Cette course ne vous appartient pas', 403);
+  }
+
+  if (ride.status !== 'IN_PROGRESS') {
+    throw new AppError('La course doit être en cours', 400);
+  }
+
+  const priceToCharge = finalPrice || parseFloat(ride.price);
+
+  // Transaction pour terminer la course et créditer le driver
+  const result = await prisma.$transaction(async (tx) => {
+    // Terminer la course
+    const completedRide = await tx.ride.update({
+      where: { id },
+      data: { 
+        status: 'COMPLETED',
+        completedAt: new Date(),
+        price: priceToCharge
+      }
+    });
+
+    await tx.rideRequest.update({
+      where: { id: ride.requestId },
+      data: { 
+        status: 'COMPLETED',
+        completedAt: new Date()
+      }
+    });
+
+    // Créditer le portefeuille du driver (commission de 85% par exemple)
+    const driverEarnings = priceToCharge * 0.85;
+    const platformFee = priceToCharge * 0.15;
+
+    const driverWallet = await tx.wallet.findUnique({
+      where: { userId: driverId }
+    });
+
+    if (!driverWallet) {
+      throw new AppError('Portefeuille du driver non trouvé', 404);
+    }
+
+    const updatedWallet = await tx.wallet.update({
+      where: { userId: driverId },
+      data: { balance: { increment: driverEarnings } }
+    });
+
+    // Créer la transaction
+    await tx.transaction.create({
+      data: {
+        userId: driverId,
+        walletId: driverWallet.id,
+        type: 'RIDE_EARNINGS',
+        amount: driverEarnings,
+        balanceBefore: driverWallet.balance,
+        balanceAfter: updatedWallet.balance,
+        status: 'COMPLETED',
+        description: `Gains course #${ride.id.substring(0, 8)}`,
+        metadata: {
+          rideId: ride.id,
+          totalPrice: priceToCharge,
+          platformFee: platformFee,
+          earnings: driverEarnings
+        }
+      }
+    });
+
+    // Rendre le driver disponible
+    await tx.driverProfile.update({
+      where: { userId: driverId },
+      data: { isAvailable: true }
+    });
+
+    return { completedRide, updatedWallet, driverEarnings };
+  });
+
+  // Notifier le passager
+  socketService.emitToUser(ride.request.userId, 'ride-completed', {
+    rideId: ride.id,
+    message: 'Course terminée avec succès',
+    price: priceToCharge
+  });
+
+  res.json({
+    success: true,
+    message: 'Course terminée avec succès',
+    ride: {
+      id: result.completedRide.id,
+      status: result.completedRide.status,
+      completedAt: result.completedRide.completedAt,
+      finalPrice: priceToCharge,
+      earnings: result.driverEarnings,
+      newBalance: result.updatedWallet.balance
+    }
+  });
+}));
+
+/**
+ * POST /api/transport/rides/:id/cancel
+ * Annuler la course
+ */
+router.post('/rides/:id/cancel', requireDriverProfile, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  const driverId = req.user.userId;
+
+  if (!reason || reason.trim().length === 0) {
+    throw new AppError('Une raison d\'annulation est requise', 400);
+  }
+
+  // Vérifier la course
+  const ride = await prisma.ride.findUnique({
+    where: { id },
+    include: { 
+      request: { 
+        include: { user: true } 
+      } 
+    }
+  });
+
+  if (!ride) {
+    throw new AppError('Course non trouvée', 404);
+  }
+
+  if (ride.driverId !== driverId) {
+    throw new AppError('Cette course ne vous appartient pas', 403);
+  }
+
+  if (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') {
+    throw new AppError('Cette course ne peut plus être annulée', 400);
+  }
+
+  // Annuler la course
+  await prisma.$transaction(async (tx) => {
+    await tx.ride.update({
+      where: { id },
+      data: { 
+        status: 'CANCELLED',
+        cancelledAt: new Date(),
+        cancelReason: reason,
+        cancelledBy: 'DRIVER'
+      }
+    });
+
+    await tx.rideRequest.update({
+      where: { id: ride.requestId },
+      data: { 
+        status: 'CANCELLED',
+        cancelReason: reason
+      }
+    });
+
+    // Rendre le driver disponible
+    await tx.driverProfile.update({
+      where: { userId: driverId },
+      data: { isAvailable: true }
+    });
+  });
+
+  // Notifier le passager
+  socketService.emitToUser(ride.request.userId, 'ride-cancelled-by-driver', {
+    rideId: ride.id,
+    message: 'Le chauffeur a annulé la course',
+    reason: reason
+  });
+
+  res.json({
+    success: true,
+    message: 'Course annulée',
+    data: {
+      rideId: id,
+      reason: reason
+    }
+  });
+}));
+
+/**
  * @swagger
  * /api/transport/update-driver-location:
  *   post:
@@ -706,6 +1123,386 @@ router.get('/my-rides', asyncHandler(async (req, res) => {
       total,
       pages: Math.ceil(total / limit)
     }
+  });
+}));
+
+// ==================== ENDPOINTS DRIVERS ====================
+
+/**
+ * GET /api/transport/available-rides
+ * Récupérer les courses disponibles pour un driver
+ */
+router.get('/available-rides', requireDriverProfile, asyncHandler(async (req, res) => {
+  const driverId = req.user.userId;
+
+  // Récupérer le profil driver avec sa localisation
+  const driverProfile = await prisma.driverProfile.findUnique({
+    where: { userId: driverId }
+  });
+
+  if (!driverProfile) {
+    throw new AppError('Profil driver non trouvé', 404);
+  }
+
+  if (!driverProfile.isOnline) {
+    return res.json({
+      success: true,
+      rides: [],
+      message: 'Vous devez être en ligne pour voir les courses disponibles'
+    });
+  }
+
+  // Récupérer les courses en attente dans un rayon de 10km
+  const pendingRides = await prisma.rideRequest.findMany({
+    where: {
+      status: 'PENDING',
+      driverId: null
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          phoneNumber: true,
+          profileImage: true
+        }
+      }
+    },
+    orderBy: {
+      createdAt: 'asc'
+    }
+  });
+
+  // Filtrer par distance si le driver a une position
+  let availableRides = pendingRides;
+  if (driverProfile.currentLat && driverProfile.currentLng) {
+    availableRides = pendingRides.filter(ride => {
+      const distance = calculateDistance(
+        driverProfile.currentLat,
+        driverProfile.currentLng,
+        ride.pickupLat,
+        ride.pickupLng
+      );
+      return distance <= 10; // 10km de rayon
+    });
+  }
+
+  const formattedRides = availableRides.map(ride => ({
+    id: ride.id,
+    passenger: {
+      id: ride.user.id,
+      name: `${ride.user.firstName} ${ride.user.lastName}`,
+      phone: ride.user.phoneNumber,
+      image: ride.user.profileImage
+    },
+    pickup: {
+      address: ride.pickupAddress,
+      lat: ride.pickupLat,
+      lng: ride.pickupLng
+    },
+    dropoff: {
+      address: ride.dropoffAddress,
+      lat: ride.dropoffLat,
+      lng: ride.dropoffLng
+    },
+    rideType: ride.rideType,
+    estimatedPrice: ride.estimatedPrice,
+    distance: ride.distance,
+    estimatedDuration: ride.estimatedDuration,
+    createdAt: ride.createdAt,
+    distanceFromDriver: driverProfile.currentLat && driverProfile.currentLng 
+      ? calculateDistance(
+          driverProfile.currentLat,
+          driverProfile.currentLng,
+          ride.pickupLat,
+          ride.pickupLng
+        )
+      : null
+  }));
+
+  // Trier par distance du driver
+  if (driverProfile.currentLat && driverProfile.currentLng) {
+    formattedRides.sort((a, b) => a.distanceFromDriver - b.distanceFromDriver);
+  }
+
+  res.json({
+    success: true,
+    rides: formattedRides,
+    driverLocation: {
+      lat: driverProfile.currentLat,
+      lng: driverProfile.currentLng
+    }
+  });
+}));
+
+/**
+ * GET /api/transport/driver-stats
+ * Statistiques du driver
+ */
+router.get('/driver-stats', requireDriverProfile, asyncHandler(async (req, res) => {
+  const driverId = req.user.userId;
+
+  // Récupérer le profil driver
+  const driverProfile = await prisma.driverProfile.findUnique({
+    where: { userId: driverId }
+  });
+
+  if (!driverProfile) {
+    throw new AppError('Profil driver non trouvé', 404);
+  }
+
+  // Statistiques des courses
+  const totalRides = await prisma.rideRequest.count({
+    where: {
+      driverId: driverId,
+      status: 'COMPLETED'
+    }
+  });
+
+  const todayRides = await prisma.rideRequest.count({
+    where: {
+      driverId: driverId,
+      status: 'COMPLETED',
+      completedAt: {
+        gte: new Date(new Date().setHours(0, 0, 0, 0))
+      }
+    }
+  });
+
+  // Calcul des gains
+  const completedRides = await prisma.rideRequest.findMany({
+    where: {
+      driverId: driverId,
+      status: 'COMPLETED'
+    },
+    select: {
+      estimatedPrice: true,
+      completedAt: true
+    }
+  });
+
+  const totalEarnings = completedRides.reduce((sum, ride) => sum + ride.estimatedPrice, 0);
+  
+  const todayEarnings = completedRides
+    .filter(ride => ride.completedAt >= new Date(new Date().setHours(0, 0, 0, 0)))
+    .reduce((sum, ride) => sum + ride.estimatedPrice, 0);
+
+  // Récupérer le solde du portefeuille
+  const wallet = await prisma.wallet.findUnique({
+    where: { userId: driverId }
+  });
+
+  // Courses en cours
+  const activeRide = await prisma.rideRequest.findFirst({
+    where: {
+      driverId: driverId,
+      status: {
+        in: ['ACCEPTED', 'DRIVER_ARRIVING', 'ARRIVED', 'IN_PROGRESS']
+      }
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          phoneNumber: true,
+          profileImage: true
+        }
+      }
+    }
+  });
+
+  res.json({
+    success: true,
+    stats: {
+      totalRides,
+      todayRides,
+      totalEarnings,
+      todayEarnings,
+      averageRating: driverProfile.averageRating || 0,
+      totalRatings: driverProfile.totalRatings || 0,
+      isOnline: driverProfile.isOnline,
+      walletBalance: wallet?.balance || 0
+    },
+    activeRide: activeRide ? {
+      id: activeRide.id,
+      status: activeRide.status,
+      passenger: {
+        name: `${activeRide.user.firstName} ${activeRide.user.lastName}`,
+        phone: activeRide.user.phoneNumber,
+        image: activeRide.user.profileImage
+      },
+      pickup: {
+        address: activeRide.pickupAddress,
+        lat: activeRide.pickupLat,
+        lng: activeRide.pickupLng
+      },
+      dropoff: {
+        address: activeRide.dropoffAddress,
+        lat: activeRide.dropoffLat,
+        lng: activeRide.dropoffLng
+      },
+      estimatedPrice: activeRide.estimatedPrice,
+      createdAt: activeRide.createdAt
+    } : null
+  });
+}));
+
+/**
+ * POST /api/transport/driver-status
+ * Changer le statut du driver (online/offline)
+ */
+router.post('/driver-status', requireDriverProfile, asyncHandler(async (req, res) => {
+  const driverId = req.user.userId;
+  const { isOnline, latitude, longitude } = req.body;
+
+  if (typeof isOnline !== 'boolean') {
+    throw new AppError('Le statut isOnline est requis', 400);
+  }
+
+  // Vérifier qu'il n'y a pas de course en cours avant de passer offline
+  if (!isOnline) {
+    const activeRide = await prisma.rideRequest.findFirst({
+      where: {
+        driverId: driverId,
+        status: {
+          in: ['ACCEPTED', 'DRIVER_ARRIVING', 'ARRIVED', 'IN_PROGRESS']
+        }
+      }
+    });
+
+    if (activeRide) {
+      throw new AppError('Impossible de passer hors ligne avec une course en cours', 400);
+    }
+  }
+
+  // Mettre à jour le statut
+  const updateData = {
+    isOnline,
+    lastSeen: new Date()
+  };
+
+  // Mettre à jour la position si fournie
+  if (latitude && longitude) {
+    updateData.currentLat = latitude;
+    updateData.currentLng = longitude;
+  }
+
+  const driverProfile = await prisma.driverProfile.update({
+    where: { userId: driverId },
+    data: updateData
+  });
+
+  // Notifier via Socket.io
+  socketService.emitToUser(driverId, 'driverStatusChanged', {
+    isOnline: driverProfile.isOnline,
+    timestamp: new Date()
+  });
+
+  res.json({
+    success: true,
+    message: `Vous êtes maintenant ${isOnline ? 'en ligne' : 'hors ligne'}`,
+    data: {
+      isOnline: driverProfile.isOnline,
+      lastSeen: driverProfile.lastSeen,
+      currentLocation: driverProfile.currentLat && driverProfile.currentLng ? {
+        lat: driverProfile.currentLat,
+        lng: driverProfile.currentLng
+      } : null
+    }
+  });
+}));
+
+/**
+ * GET /api/transport/driver-earnings
+ * Détails des gains du driver par période
+ */
+router.get('/driver-earnings', requireDriverProfile, asyncHandler(async (req, res) => {
+  const driverId = req.user.userId;
+  const { period = 'week' } = req.query; // 'today', 'week', 'month', 'all'
+
+  let startDate;
+  const now = new Date();
+
+  switch (period) {
+    case 'today':
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+      break;
+    case 'week':
+      startDate = new Date(now.setDate(now.getDate() - 7));
+      break;
+    case 'month':
+      startDate = new Date(now.setMonth(now.getMonth() - 1));
+      break;
+    default:
+      startDate = null;
+  }
+
+  const whereClause = {
+    driverId: driverId,
+    status: 'COMPLETED'
+  };
+
+  if (startDate) {
+    whereClause.completedAt = { gte: startDate };
+  }
+
+  const completedRides = await prisma.rideRequest.findMany({
+    where: whereClause,
+    select: {
+      id: true,
+      estimatedPrice: true,
+      distance: true,
+      rideType: true,
+      completedAt: true,
+      pickupAddress: true,
+      dropoffAddress: true
+    },
+    orderBy: {
+      completedAt: 'desc'
+    }
+  });
+
+  const totalEarnings = completedRides.reduce((sum, ride) => sum + ride.estimatedPrice, 0);
+  const totalDistance = completedRides.reduce((sum, ride) => sum + ride.distance, 0);
+
+  // Grouper par jour
+  const earningsByDay = {};
+  completedRides.forEach(ride => {
+    const day = ride.completedAt.toISOString().split('T')[0];
+    if (!earningsByDay[day]) {
+      earningsByDay[day] = {
+        date: day,
+        rides: 0,
+        earnings: 0
+      };
+    }
+    earningsByDay[day].rides++;
+    earningsByDay[day].earnings += ride.estimatedPrice;
+  });
+
+  res.json({
+    success: true,
+    period,
+    summary: {
+      totalRides: completedRides.length,
+      totalEarnings,
+      totalDistance: Math.round(totalDistance * 100) / 100,
+      averageEarningsPerRide: completedRides.length > 0 
+        ? Math.round((totalEarnings / completedRides.length) * 100) / 100 
+        : 0
+    },
+    earningsByDay: Object.values(earningsByDay),
+    recentRides: completedRides.slice(0, 10).map(ride => ({
+      id: ride.id,
+      price: ride.estimatedPrice,
+      distance: ride.distance,
+      type: ride.rideType,
+      from: ride.pickupAddress,
+      to: ride.dropoffAddress,
+      completedAt: ride.completedAt
+    }))
   });
 }));
 

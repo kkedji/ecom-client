@@ -9,8 +9,11 @@ export default function NotificationsMenu() {
   const menuRef = useRef(null)
 
   useEffect(() => {
-    loadNotifications()
-  }, [])
+    // Ne charger les notifications que si le menu est ouvert
+    if (isOpen) {
+      loadNotifications()
+    }
+  }, [isOpen])
 
   const loadNotifications = async () => {
     setLoading(true)
@@ -18,9 +21,14 @@ export default function NotificationsMenu() {
       const result = await apiService.getNotifications()
       if (result.success) {
         setNotifications(result.data || [])
+      } else {
+        // En cas d'erreur, initialiser avec un tableau vide
+        setNotifications([])
       }
     } catch (error) {
       console.error('Erreur chargement notifications:', error)
+      // En cas d'erreur, initialiser avec un tableau vide pour éviter un crash
+      setNotifications([])
     } finally {
       setLoading(false)
     }

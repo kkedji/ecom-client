@@ -268,8 +268,9 @@ router.get('/analytics/top-users', verifyAdmin, asyncHandler(async (req, res) =>
 /**
  * GET /api/admin/users/list
  * Liste de tous les utilisateurs avec leurs statistiques
+ * Accessible par tous les admins (ADMIN et SUPER_ADMIN)
  */
-router.get('/users/list', verifySuperAdmin, asyncHandler(async (req, res) => {
+router.get('/users/list', verifyAdmin, asyncHandler(async (req, res) => {
   const { search, role, status } = req.query;
 
   const where = {};

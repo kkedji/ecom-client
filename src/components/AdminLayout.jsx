@@ -1,11 +1,22 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AdminSplashScreen from './AdminSplashScreen'
 
 export default function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
+  const [showSplash, setShowSplash] = useState(true)
+
+  const handleSplashComplete = () => {
+    setShowSplash(false)
+  }
+
+  // Afficher le splash screen au chargement
+  if (showSplash) {
+    return <AdminSplashScreen onComplete={handleSplashComplete} />
+  }
 
   const menuItems = [
     { path: '/admin/dashboard', label: 'Tableau de bord' },

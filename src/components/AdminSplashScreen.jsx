@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import logo from '../assets/images/ecom-logo.png';
 
-const SplashScreen = ({ onComplete }) => {
+const AdminSplashScreen = ({ onComplete }) => {
   useEffect(() => {
     // Durée du splash screen (3 secondes)
     const timer = setTimeout(() => {
@@ -34,14 +34,32 @@ const SplashScreen = ({ onComplete }) => {
       }}>
         <img 
           src={logo} 
-          alt="ECOM Logo" 
+          alt="ECOM Admin Logo" 
           style={{
             width: '150px',
             height: '150px',
             objectFit: 'contain',
-            filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))'
+            filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
           }}
         />
+      </div>
+
+      {/* Badge Admin */}
+      <div style={{
+        background: 'rgba(255,255,255,0.2)',
+        padding: '8px 20px',
+        borderRadius: '20px',
+        marginBottom: '10px',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <span style={{
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '600',
+          letterSpacing: '2px'
+        }}>
+          ADMIN
+        </span>
       </div>
 
       {/* Nom de l'application */}
@@ -50,9 +68,9 @@ const SplashScreen = ({ onComplete }) => {
         fontSize: '32px',
         fontWeight: 'bold',
         marginBottom: '10px',
-        textShadow: '0 2px 10px rgba(0,0,0,0.2)'
+        textShadow: '0 2px 10px rgba(0,0,0,0.3)'
       }}>
-        ECOM
+        ECOM Platform
       </h1>
 
       {/* Sous-titre */}
@@ -61,7 +79,7 @@ const SplashScreen = ({ onComplete }) => {
         fontSize: '16px',
         marginBottom: '40px'
       }}>
-        Votre plateforme tout-en-un
+        Espace d'administration
       </p>
 
       {/* Loader animé */}
@@ -90,4 +108,4 @@ const SplashScreen = ({ onComplete }) => {
   );
 };
 
-export default SplashScreen;
+export default AdminSplashScreen;

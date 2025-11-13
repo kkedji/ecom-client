@@ -28,23 +28,45 @@ const socketService = require('./services/socketService');
 
 const app = express();
 const server = createServer(app);
+
+// Socket.IO CORS configuration
+const socketOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://ecomapp-client.netlify.app',
+      'https://ecomapp-driver.netlify.app',
+      'http://localhost:3000',
+      'http://localhost:5173'
+    ] 
+  : ['http://localhost:3000', 'http://localhost:5173'];
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://ecomapp-client.netlify.app'] 
-      : ['http://localhost:3000', 'http://localhost:5173'],
-    methods: ['GET', 'POST']
+    origin: socketOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
 // Basic middleware
 app.use(helmet());
 app.use(compression());
+
+// CORS Configuration
+// Autoriser localhost:3000 (Driver App) et localhost:5173 (Client App) en développement
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://ecomapp-client.netlify.app', 
+      'https://ecomapp-driver.netlify.app',
+      'http://localhost:3000',  // Pour les tests en développement contre la prod
+      'http://localhost:5173'    // Pour les tests en développement contre la prod
+    ] 
+  : ['http://localhost:3000', 'http://localhost:5173'];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://ecomapp-client.netlify.app'] 
-    : ['http://localhost:3000', 'http://localhost:5173'],
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Request logging

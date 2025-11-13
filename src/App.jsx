@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
 import AdminRoute from './components/AdminRoute'
 import BottomNav from './components/BottomNav'
+import SplashScreen from './components/SplashScreen'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Transport from './pages/Transport'
@@ -40,11 +41,21 @@ export default function App(){
   const { user, logout } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showSplash, setShowSplash] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
 
   const toggleDrawer = () => setDrawerOpen(!drawerOpen)
   const closeDrawer = () => setDrawerOpen(false)
+
+  const handleSplashComplete = () => {
+    setShowSplash(false)
+  }
+
+  // Afficher le splash screen au démarrage
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />
+  }
 
   // Get page title based on route
   const getPageTitle = () => {

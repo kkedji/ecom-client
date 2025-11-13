@@ -18,6 +18,32 @@ export default function Home() {
     return <WalletPage onClose={() => setShowWallet(false)} />
   }
 
+  // Vérifier que l'utilisateur est bien chargé
+  if (!user) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#F5F5F5'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '4px solid #E8F5E9',
+            borderTopColor: '#4CAF50',
+            borderRadius: '50%',
+            margin: '0 auto 16px',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <p style={{ color: '#666', fontSize: '14px' }}>Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{
       background: '#F5F5F5',
