@@ -110,7 +110,7 @@ const Login = () => {
           width: '100%',
           maxWidth: '450px'
         }}>
-          <div style={{ marginBottom: '48px' }}>
+          <div style={{ marginBottom: '48px', textAlign: 'center' }}>
             <h2 style={{
               margin: 0,
               fontSize: '32px',
@@ -121,13 +121,6 @@ const Login = () => {
 
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '24px' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '10px',
-                fontSize: '15px',
-                fontWeight: '600',
-                color: '#333'
-              }}>Numéro de téléphone</label>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{
                   padding: '14px 18px',
@@ -144,7 +137,7 @@ const Login = () => {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   disabled={loading}
-                  placeholder="90151369"
+                  placeholder="90 00 00 00"
                   autoFocus
                   style={{
                     flex: 1,
