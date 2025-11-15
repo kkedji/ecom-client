@@ -620,6 +620,8 @@ router.post('/logout', authenticateToken, asyncHandler(async (req, res) => {
  * Inscription complète d'un driver (données personnelles + véhicule)
  */
 router.post('/register-driver', asyncHandler(async (req, res) => {
+  console.log('🚗 Début register-driver, body reçu:', JSON.stringify(req.body, null, 2));
+  
   // Validation du schéma
   const driverSchema = Joi.object({
     // Informations d'authentification
@@ -643,10 +645,13 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
     licenseNumber: Joi.string().min(5).max(50).required()
   });
 
+  console.log('📋 Validation du schéma...');
   const { error, value } = driverSchema.validate(req.body);
   if (error) {
+    console.log('❌ Erreur de validation:', error.details[0].message);
     throw new AppError(error.details[0].message, 400);
   }
+  console.log('✅ Validation OK');
 
   const {
     email,
@@ -665,40 +670,50 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
 
   // Normaliser le numéro de téléphone
   const normalizedPhone = normalizePhoneNumber(phone);
+  console.log('📱 Téléphone normalisé:', normalizedPhone);
 
   // Vérifier si l'email existe déjà
+  console.log('🔍 Vérification email...');
   const existingUserByEmail = await prisma.user.findUnique({
     where: { email: email.toLowerCase() }
   });
 
   if (existingUserByEmail) {
+    console.log('❌ Email déjà utilisé');
     throw new AppError('Cet email est déjà utilisé', 400);
   }
 
   // Vérifier si le téléphone existe déjà
+  console.log('🔍 Vérification téléphone...');
   const existingUserByPhone = await prisma.user.findUnique({
     where: { phoneNumber: normalizedPhone }
   });
 
   if (existingUserByPhone) {
+    console.log('❌ Téléphone déjà utilisé');
     throw new AppError('Ce numéro de téléphone est déjà utilisé', 400);
   }
 
   // Vérifier si la plaque d'immatriculation existe déjà
+  console.log('🔍 Vérification plaque...');
   const existingPlate = await prisma.driverProfile.findUnique({
     where: { plateNumber: licensePlate.toUpperCase() }
   });
 
   if (existingPlate) {
+    console.log('❌ Plaque déjà enregistrée');
     throw new AppError('Cette plaque d\'immatriculation est déjà enregistrée', 400);
   }
 
   // Hasher le mot de passe
+  console.log('🔒 Hashage du mot de passe...');
   const hashedPassword = await bcrypt.hash(password, 12);
 
   // Créer l'utilisateur, le profil driver et le wallet dans une transaction
+  console.log('💾 Début de la transaction...');
   const result = await prisma.$transaction(async (tx) => {
     // 1. Créer l'utilisateur
+    console.log('👤 Création utilisateur...');
     const user = await tx.user.create({
       data: {
         email: email.toLowerCase(),
@@ -711,8 +726,20 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
         isActive: true
       }
     });
+    console.log('✅ Utilisateur créé, ID:', user.id);
 
     // 2. Créer le profil driver
+    console.log('🚗 Création profil driver avec:', {
+      userId: user.id,
+      vehicleType,
+      vehicleBrand,
+      vehicleModel,
+      vehicleYear,
+      vehicleColor,
+      plateNumber: licensePlate.toUpperCase(),
+      licenseNumber
+    });
+    
     const driverProfile = await tx.driverProfile.create({
       data: {
         userId: user.id,
@@ -731,8 +758,10 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
         totalRides: 0
       }
     });
+    console.log('✅ Profil driver créé, ID:', driverProfile.id);
 
     // 3. Créer le wallet avec crédit initial de 50,000 F
+    console.log('💰 Création wallet...');
     const initialBalance = 50000;
     const wallet = await tx.wallet.create({
       data: {
@@ -740,8 +769,10 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
         balance: initialBalance
       }
     });
+    console.log('✅ Wallet créé, ID:', wallet.id, 'Balance:', initialBalance);
 
     // 4. Créer la transaction de crédit initial
+    console.log('📝 Création transaction initiale...');
     await tx.transaction.create({
       data: {
         userId: user.id,
@@ -759,14 +790,19 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
         }
       }
     });
+    console.log('✅ Transaction créée');
 
     return { user, driverProfile, wallet };
   });
 
+  console.log('✅ Transaction complétée avec succès');
+
   // Générer les tokens
+  console.log('🔑 Génération des tokens...');
   const { accessToken, refreshToken } = generateTokens(result.user.id);
 
   // Réponse
+  console.log('📤 Envoi de la réponse...');
   res.status(201).json({
     success: true,
     message: 'Inscription driver réussie',
