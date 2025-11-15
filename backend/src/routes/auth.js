@@ -499,12 +499,15 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
 router.post('/login', asyncHandler(async (req, res) => {
   const { phone, password, firstName, lastName, email } = req.body;
   
+  console.log('📞 Login attempt:', { phone, hasPassword: !!password, firstName, lastName, email });
+  
   if (!phone) {
     throw new AppError('Numéro de téléphone requis', 400);
   }
   
   // Normaliser le numéro
   const normalizedPhone = normalizePhoneNumber(phone);
+  console.log('📱 Normalized phone:', normalizedPhone);
   
   // Chercher l'utilisateur (inclure isAdmin et role)
   const user = await prisma.user.findUnique({
@@ -514,46 +517,64 @@ router.post('/login', asyncHandler(async (req, res) => {
     }
   });
   
+  console.log('👤 User found:', user ? 'Yes' : 'No');
+  
   // Pour les tests, créer un utilisateur si inexistant
   if (!user) {
-    // Générer un mot de passe par défaut hashé
-    const defaultPassword = await bcrypt.hash('password123', 12);
+    console.log('➕ Creating new user...');
     
-    const newUser = await prisma.user.create({
-      data: {
-        phoneNumber: normalizedPhone,
-        firstName: firstName || 'Test',
-        lastName: lastName || 'User',
-        email: email || null,
-        password: defaultPassword,
-        isVerified: true,
-        wallet: {
-          create: {
-            balance: 50000
+    // Vérifier que firstName et lastName sont fournis
+    if (!firstName || !lastName) {
+      throw new AppError('Prénom et nom requis pour la création du compte', 400);
+    }
+    
+    // Utiliser le mot de passe fourni ou un mot de passe par défaut
+    const passwordToHash = password || 'password123';
+    const hashedPassword = await bcrypt.hash(passwordToHash, 12);
+    console.log('🔒 Password hashed');
+    
+    try {
+      const newUser = await prisma.user.create({
+        data: {
+          phoneNumber: normalizedPhone,
+          firstName: firstName,
+          lastName: lastName,
+          email: email || null,
+          password: hashedPassword,
+          isVerified: true,
+          wallet: {
+            create: {
+              balance: 50000
+            }
           }
+        },
+        include: { wallet: true }
+      });
+      
+      console.log('✅ User created:', newUser.id);
+      
+      const tokens = generateTokens(newUser.id);
+      
+      return res.json({
+        success: true,
+        message: 'Utilisateur créé et connecté',
+        token: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        user: {
+          id: newUser.id,
+          phoneNumber: newUser.phoneNumber,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          isAdmin: newUser.isAdmin || false,
+          role: newUser.role || 'USER',
+          wallet: newUser.wallet
         }
-      },
-      include: { wallet: true }
-    });
-    
-    const tokens = generateTokens(newUser.id);
-    
-    return res.json({
-      success: true,
-      message: 'Utilisateur créé et connecté',
-      token: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user: {
-        id: newUser.id,
-        phoneNumber: newUser.phoneNumber,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        isAdmin: newUser.isAdmin || false,
-        role: newUser.role || 'USER',
-        wallet: newUser.wallet
-      }
-    });
+      });
+    } catch (createError) {
+      console.error('❌ Error creating user:', createError);
+      throw new AppError(`Erreur lors de la création du compte: ${createError.message}`, 500);
+    }
   }
   
   // Générer les tokens
@@ -611,14 +632,13 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
     // Informations personnelles
     firstName: Joi.string().min(2).max(50).required(),
     lastName: Joi.string().min(2).max(50).required(),
-    address: Joi.string().min(5).max(255).required(),
-    gender: Joi.string().valid('MALE', 'FEMALE').required(),
     
     // Informations du véhicule
     vehicleType: Joi.string().valid('BERLINE', 'SUV', 'VAN', 'MOTO').required(),
     vehicleBrand: Joi.string().min(2).max(50).required(),
     vehicleModel: Joi.string().min(2).max(50).required(),
     vehicleYear: Joi.number().integer().min(1990).max(new Date().getFullYear() + 1).required(),
+    vehicleColor: Joi.string().min(2).max(30).required(),
     licensePlate: Joi.string().min(2).max(20).required(),
     licenseNumber: Joi.string().min(5).max(50).required()
   });
@@ -634,12 +654,11 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
     phone,
     firstName,
     lastName,
-    address,
-    gender,
     vehicleType,
     vehicleBrand,
     vehicleModel,
     vehicleYear,
+    vehicleColor,
     licensePlate,
     licenseNumber
   } = value;
@@ -701,14 +720,13 @@ router.post('/register-driver', asyncHandler(async (req, res) => {
         vehicleBrand,
         vehicleModel,
         vehicleYear,
-        vehicleColor: 'Non spécifié', // Peut être ajouté plus tard
+        vehicleColor,
         plateNumber: licensePlate.toUpperCase(),
         licenseNumber,
-        address,
-        gender,
+        insuranceNumber: 'À fournir', // Valeur par défaut - à remplir plus tard
         isOnline: false,
         isAvailable: true,
-        status: 'PENDING_VERIFICATION', // En attente de vérification admin
+        status: 'INACTIVE', // Statut initial INACTIVE (sera activé par l'admin)
         rating: 0,
         totalRides: 0
       }

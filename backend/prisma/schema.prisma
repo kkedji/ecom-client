@@ -366,6 +366,9 @@ enum VehicleType {
   MOTO
   TRICYCLE
   DELIVERY_VAN
+  BERLINE
+  SUV
+  VAN
 }
 
 enum DriverStatus {
